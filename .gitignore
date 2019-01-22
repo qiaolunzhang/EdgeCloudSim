@@ -19,3 +19,6 @@ bin
 .settings
 .classpath
 .project
+
+# output file
+sim_results
