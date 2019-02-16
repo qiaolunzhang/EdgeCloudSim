@@ -28,6 +28,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import edu.boun.edgecloudsim.utils.SimLogger;
+import edu.boun.edgecloudsim.utils.TaskBasedTask;
 
 public class SimSettings {
 	private static SimSettings instance = null;
@@ -107,6 +108,10 @@ public class SimSettings {
     private double[][] taskLookUpTable = null;
     
     private String[] taskNames = null;
+    
+    private int[] subTaskLookUpTable = null;
+    
+    private TaskBasedTask[] dependencyLookUpTable = null;
 
 	private SimSettings() {
 		NUM_OF_PLACE_TYPES = 0;
