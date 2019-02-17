@@ -1,9 +1,12 @@
 package edu.boun.edgecloudsim.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TaskBasedTask {
 	private int numSubTask;
 	private int[] tasks;
-	private int[] submitted;
+	private boolean[] submitted;
 	/*
 	 * dependency[0][1] = 1 means task 0 is dependent on task 1
 	 * 	 0 1
@@ -18,11 +21,14 @@ public class TaskBasedTask {
 	 */
 	private int[][] dependency_met;
 	
+
 	public TaskBasedTask(int num, int[] taskList) {
 		numSubTask = num;
 		tasks = new int[numSubTask];
+		submitted = new boolean[numSubTask];
 		for (int i=0; i<numSubTask; i++) {
-			tasks[i]= taskList[i]; 
+			tasks[i] = taskList[i]; 
+			submitted[i] = false; 
 		}
 		/*
 		 * Initialize the task with no dependency
@@ -65,15 +71,15 @@ public class TaskBasedTask {
 	/*
 	 * remove dependency when a task finished
 	 */
-	public void removeDependency(int taskId) {
+	private void removeDependency(int taskId) {
 		int task_index = getTaskIndex(taskId);
 		for (int i=0; i<numSubTask; i++) {
 			dependency_met[i][task_index] = 1;
 		}
 	}
 
-	public boolean checkDependency(int taskId) {
-		int task_index = getTaskIndex(taskId);
+	private boolean checkDependency(int index) {
+		int task_index = index;
 		boolean flag = true;
 		for (int i=0; i<numSubTask; i++) {
 			if (dependency_met[task_index][i] == 0) {
@@ -83,10 +89,32 @@ public class TaskBasedTask {
 
 		return flag;
 	}
-/*	
-	public int[] getTaskToSubmit(int taskFinishedId) {
-	}
-	*/
+	
 
+	public List<Integer> getTaskToSubmit(int taskFinishedId) {
+		List<Integer> tasktoSubmit = new ArrayList<Integer>();
+		removeDependency(taskFinishedId);
+		for (int index=0; index<numSubTask; index++) {
+			// check if the dependencies has been met and whether the task has been submitted
+			if (checkDependency(index) && (submitted[index] == false)) {
+				tasktoSubmit.add(tasks[index]);
+				submitted[index] = true; 
+			}
+		}
+		
+		return tasktoSubmit;
+	}
+	
+	public List<Integer> getInitialTaskToSubmit(){
+		List<Integer> tasktoSubmit = new ArrayList<>();
+		for (int index=0; index<numSubTask; index++) {
+			// check whether dependencies has been met and whether the task has been submitted
+			if (checkDependency(index) && (submitted[index] == false)) {
+				tasktoSubmit.add(tasks[index]);
+				submitted[index] = true; 
+			}
+		}
+		return tasktoSubmit;
+	}
 
 }
