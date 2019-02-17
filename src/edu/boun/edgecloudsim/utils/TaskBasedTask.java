@@ -47,7 +47,7 @@ public class TaskBasedTask {
 	/*
 	 * given a taskId, return the task_index`
 	 */
-	public int getTaskIndex(int taskId) {
+	private int getTaskIndex(int taskId) {
 		int task_index = 0;
 		for (int i=0; i<numSubTask; i++) {
 			if (tasks[i] == taskId) {
@@ -78,6 +78,10 @@ public class TaskBasedTask {
 		}
 	}
 
+	/*
+	 * return true: dependency has been met
+	 * return false: dependencies has not been met
+	 */
 	private boolean checkDependency(int index) {
 		int task_index = index;
 		boolean flag = true;
@@ -116,5 +120,13 @@ public class TaskBasedTask {
 		}
 		return tasktoSubmit;
 	}
-
+	
+	public boolean checkReadySubmit(int taskId) {
+		int taskIndex = getTaskIndex(taskId);
+		if (checkDependency(taskIndex) && submitted[taskIndex] == false) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
