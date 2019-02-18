@@ -109,6 +109,8 @@ public class SimSettings {
     
     private String[] taskNames = null;
     
+    // The length is the same as the number of tasks(tasks are divided to subtasks)
+    // -1 represents not subtask, if the task is subtask, store index in dependencyLookUpTable
     private int[] subTaskLookUpTable = null;
     
     private TaskBasedTask[] dependencyLookUpTable = null;
@@ -513,6 +515,23 @@ public class SimSettings {
 		}
 	}
 	
+	private boolean isTaskBasedApplication(Element element, String key) {
+		boolean flag = false;
+		try {
+			String value = element.getElementsByTagName(key).item(0).getTextContent();
+			if (value.isEmpty() || value  == null) {
+				flag = false;
+			}
+			else {
+				flag = true;
+			}
+		} catch (Exception e) {
+			flag = false;
+		}
+		
+		return flag;
+	}
+	
 	private void parseApplicatinosXML(String filePath)
 	{
 		Document doc = null;
@@ -530,6 +549,9 @@ public class SimSettings {
 				Node appNode = appList.item(i);
 	
 				Element appElement = (Element) appNode;
+				if (isTaskBasedApplication(appElement, "num_sub_application")) {
+				}
+				else {
 				isAttribtuePresent(appElement, "name");
 				isElementPresent(appElement, "usage_percentage");
 				isElementPresent(appElement, "prob_cloud_selection");
@@ -572,6 +594,7 @@ public class SimSettings {
 			    taskLookUpTable[i][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
 			    taskLookUpTable[i][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
 			    taskLookUpTable[i][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+				}
 			}
 	
 		} catch (Exception e) {
