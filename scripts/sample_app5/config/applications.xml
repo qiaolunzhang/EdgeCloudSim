@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <applications>
 	<application name="TASK_BASED_APP">
-		<num_sub_applications>4</num_sub_applications>
 		<sub_applications>
 			<sub_application name="SUB_APP1">
 				<usage_percentage>30</usage_percentage>
