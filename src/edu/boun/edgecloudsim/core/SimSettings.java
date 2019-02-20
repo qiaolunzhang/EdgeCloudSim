@@ -620,7 +620,6 @@ public class SimSettings {
 				if (isTaskBasedApplication(appElement, "sub_applications")) {
 					taskBasedAppCount++;
 					//NodeList subappList = appElement.getElementsByTagName("sub_appli)
-					//TODO increase taskCount
 					NodeList subappList = appElement.getElementsByTagName("sub_application");
 					int subapp_cnt = subappList.getLength();
 					taskCount = taskCount + subapp_cnt;
@@ -644,7 +643,6 @@ public class SimSettings {
 	
 				Element appElement = (Element) appNode;
 				if (isTaskBasedApplication(appElement, "sub_applications")) {
-					// TODO load task-based application
 					// update subTaskLookUpTable
 					subTaskLookUpTable[taskIndex] = dependencyLookUpTableIndex; 
 					// get the sub_applications Element
