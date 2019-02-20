@@ -579,6 +579,27 @@ public class SimSettings {
 		taskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
 	}
 	
+	/**
+	 * add the dependency to the corresponding TaskBasedTask
+	 * @param subAppelement: the subTaskApplication element
+	 * @param taskIndex: the index of the sub task in all tasks
+	 * @param subTaskIndex: the index 0, 1, 2, ... in the task-based applications
+	 */
+	private void addDependency(Element subAppElement, int taskIndex, int subTaskIndex) {
+		int num_dependency = Integer.parseInt(subAppElement.getElementsByTagName("num_dependency").item(0).getTextContent());
+		if (num_dependency > 0) {
+			NodeList dependencyList = subAppElement.getElementsByTagName("dependency");
+			for (int i=0; i<dependencyList.getLength(); i++) {
+				Node dependencyNode = dependencyList.item(i);
+				//Element dependencyElement = (Element) dependencyNode;
+				int dependencyIndex = Integer.parseInt(dependencyNode.getTextContent());
+				int dependencyLookUpTableIndex = subTaskLookUpTable[taskIndex];
+				TaskBasedTask taskBasedTask = dependencyLookUpTable[dependencyLookUpTableIndex];
+				taskBasedTask.addDependency(taskIndex+subTaskIndex, taskIndex+dependencyIndex);
+			}
+		}
+	}
+	
 	private void parseApplicatinosXML(String filePath)
 	{
 		Document doc = null;
@@ -641,6 +662,8 @@ public class SimSettings {
 					for (int j=0; j<subappList.getLength(); j++) {
 						Node subAppNode = subappList.item(j);
 						Element subAppelement = (Element) subAppNode;
+						addTask(subAppelement, taskIndex+j);
+						addDependency(subAppelement, taskIndex, j);
 					}
 
 
