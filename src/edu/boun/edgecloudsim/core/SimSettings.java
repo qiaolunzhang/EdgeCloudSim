@@ -534,6 +534,51 @@ public class SimSettings {
 		return flag;
 	}
 	
+	private void addTask(Element appElement, int taskIndex) {
+		isAttribtuePresent(appElement, "name");
+		isElementPresent(appElement, "usage_percentage");
+		isElementPresent(appElement, "prob_cloud_selection");
+		isElementPresent(appElement, "poisson_interarrival");
+		isElementPresent(appElement, "active_period");
+		isElementPresent(appElement, "idle_period");
+		isElementPresent(appElement, "data_upload");
+		isElementPresent(appElement, "data_download");
+		isElementPresent(appElement, "task_length");
+		isElementPresent(appElement, "required_core");
+		isElementPresent(appElement, "vm_utilization_on_edge");
+		isElementPresent(appElement, "vm_utilization_on_cloud");
+		isElementPresent(appElement, "vm_utilization_on_mobile");
+
+		String taskName = appElement.getAttribute("name");
+		taskNames[taskIndex] = taskName;
+				
+		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
+		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
+		double poisson_interarrival = Double.parseDouble(appElement.getElementsByTagName("poisson_interarrival").item(0).getTextContent());
+		double active_period = Double.parseDouble(appElement.getElementsByTagName("active_period").item(0).getTextContent());
+		double idle_period = Double.parseDouble(appElement.getElementsByTagName("idle_period").item(0).getTextContent());
+		double data_upload = Double.parseDouble(appElement.getElementsByTagName("data_upload").item(0).getTextContent());
+		double data_download = Double.parseDouble(appElement.getElementsByTagName("data_download").item(0).getTextContent());
+		double task_length = Double.parseDouble(appElement.getElementsByTagName("task_length").item(0).getTextContent());
+		double required_core = Double.parseDouble(appElement.getElementsByTagName("required_core").item(0).getTextContent());
+		double vm_utilization_on_edge = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
+		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
+		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
+				
+		taskLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
+		taskLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
+		taskLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
+		taskLookUpTable[taskIndex][3] = active_period; //active period (sec)
+		taskLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
+		taskLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
+		taskLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
+		taskLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
+		taskLookUpTable[taskIndex][8] = required_core; //required # of core
+		taskLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
+		taskLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
+		taskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+	}
+	
 	private void parseApplicatinosXML(String filePath)
 	{
 		Document doc = null;
@@ -585,61 +630,27 @@ public class SimSettings {
 					NodeList subappList = appElement.getElementsByTagName("sub_application");
 					int subapp_cnt = subappList.getLength();
 					int[] subAppIndexList = new int[subapp_cnt];
+
 					// set the subAppIndex in subAppIndexList
 					for (int j=0; j<subapp_cnt; j++) {
 						subAppIndexList[j] = taskIndex + j; 
 					}
-
 					dependencyLookUpTable[dependencyLookUpTableIndex] = new TaskBasedTask(subapp_cnt, subAppIndexList);
+					
+					// add task
+					for (int j=0; j<subappList.getLength(); j++) {
+						Node subAppNode = subappList.item(j);
+						Element subAppelement = (Element) subAppNode;
+					}
+
 
 					dependencyLookUpTableIndex++;
 					taskIndex = taskIndex + subapp_cnt;
 				}
 				else {
+					addTask(appElement, taskIndex);
 					subTaskLookUpTable[taskIndex] = -1; 
-					isAttribtuePresent(appElement, "name");
-					isElementPresent(appElement, "usage_percentage");
-					isElementPresent(appElement, "prob_cloud_selection");
-					isElementPresent(appElement, "poisson_interarrival");
-					isElementPresent(appElement, "active_period");
-					isElementPresent(appElement, "idle_period");
-					isElementPresent(appElement, "data_upload");
-					isElementPresent(appElement, "data_download");
-					isElementPresent(appElement, "task_length");
-					isElementPresent(appElement, "required_core");
-					isElementPresent(appElement, "vm_utilization_on_edge");
-					isElementPresent(appElement, "vm_utilization_on_cloud");
-					isElementPresent(appElement, "vm_utilization_on_mobile");
-
-					String taskName = appElement.getAttribute("name");
-					taskNames[taskIndex] = taskName;
-				
-					double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
-					double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
-					double poisson_interarrival = Double.parseDouble(appElement.getElementsByTagName("poisson_interarrival").item(0).getTextContent());
-					double active_period = Double.parseDouble(appElement.getElementsByTagName("active_period").item(0).getTextContent());
-					double idle_period = Double.parseDouble(appElement.getElementsByTagName("idle_period").item(0).getTextContent());
-					double data_upload = Double.parseDouble(appElement.getElementsByTagName("data_upload").item(0).getTextContent());
-					double data_download = Double.parseDouble(appElement.getElementsByTagName("data_download").item(0).getTextContent());
-					double task_length = Double.parseDouble(appElement.getElementsByTagName("task_length").item(0).getTextContent());
-					double required_core = Double.parseDouble(appElement.getElementsByTagName("required_core").item(0).getTextContent());
-					double vm_utilization_on_edge = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
-					double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
-					double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
-				
-			    	taskLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
-			    	taskLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
-			    	taskLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
-			    	taskLookUpTable[taskIndex][3] = active_period; //active period (sec)
-			    	taskLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
-			    	taskLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
-			    	taskLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
-			    	taskLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
-			    	taskLookUpTable[taskIndex][8] = required_core; //required # of core
-			    	taskLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
-			    	taskLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
-			    	taskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
-			    	taskIndex++;
+		    	taskIndex++;
 				}
 			}
 	
