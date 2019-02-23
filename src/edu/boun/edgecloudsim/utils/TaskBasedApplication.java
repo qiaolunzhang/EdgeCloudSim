@@ -3,7 +3,8 @@ package edu.boun.edgecloudsim.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TaskBasedTask {
+public class TaskBasedApplication {
+	private int startIndex;
 	private int numSubTask;
 	private int[] tasks;
 	private boolean[] submitted;
@@ -22,12 +23,12 @@ public class TaskBasedTask {
 	private int[][] dependency_met;
 	
 
-	public TaskBasedTask(int num, int[] taskList) {
+	public TaskBasedApplication(int num, int subtaskIndex) {
 		numSubTask = num;
+		startIndex = subtaskIndex;
 		tasks = new int[numSubTask];
 		submitted = new boolean[numSubTask];
 		for (int i=0; i<numSubTask; i++) {
-			tasks[i] = taskList[i]; 
 			submitted[i] = false; 
 		}
 		/*
