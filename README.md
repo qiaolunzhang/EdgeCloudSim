@@ -8,6 +8,23 @@ The discussion forum for EdgeCloudSim can be found [here](https://groups.google.
 We hope to meet with all interested parties in this forum.
 Please feel free to join and let us discuss issues, share ideas related to EdgeCloudSim all togerther.
 
+## Required Features
+
+- Mist computing features (executing tasks on mobile device)
+
+- Incorporating cellular access network model into EdgeCloudSim (3G/4G/5G)
+
+- Task migration among the Edge or Cloud VMs
+
+- Energy consumption model for the mobile and edge devices as well as the cloud datacenters
+- Adding probabilistic network failure model by considering the congestion or other parameters such as the distance between mobile device and the WiFi access point.
+- Visual tool for displaying the network topology 
+- Extending application xml descriptionExtending application xml description with  processor type for VMScheduler
+- Extending hardware computing units in Host with other type of units (GPU, FPGA, ACC)
+- Extending basic task application definition to support task-based application
+- Extending the Load Generator Module with a distributed task graph workload generator 
+
+
 ## Needed Features
 
 * Mist computing features (executing tasks on mobile device)
