@@ -46,6 +46,41 @@
 				<sub_application_number>1</sub_application_number>
 				<num_dependency>0</num_dependency>
 			</sub_application>
+			<sub_application name="SUB_APP3">
+				<usage_percentage>30</usage_percentage>
+				<prob_cloud_selection>20</prob_cloud_selection>
+				<poisson_interarrival>2</poisson_interarrival>
+				<active_period>40</active_period>
+				<idle_period>20</idle_period>
+				<data_upload>1500</data_upload>
+				<data_download>250</data_download>
+				<task_length>12000</task_length>
+				<required_core>1</required_core>
+				<vm_utilization_on_edge>8</vm_utilization_on_edge>
+				<vm_utilization_on_cloud>0.8</vm_utilization_on_cloud>
+				<vm_utilization_on_mobile>20</vm_utilization_on_mobile>
+				<sub_application_number>2</sub_application_number>
+				<num_dependency>1</num_dependency>
+				<dependency>0</dependency>
+			</sub_application>
+			<sub_application name="SUB_APP4">
+				<usage_percentage>30</usage_percentage>
+				<prob_cloud_selection>20</prob_cloud_selection>
+				<poisson_interarrival>2</poisson_interarrival>
+				<active_period>40</active_period>
+				<idle_period>20</idle_period>
+				<data_upload>1500</data_upload>
+				<data_download>250</data_download>
+				<task_length>12000</task_length>
+				<required_core>1</required_core>
+				<vm_utilization_on_edge>8</vm_utilization_on_edge>
+				<vm_utilization_on_cloud>0.8</vm_utilization_on_cloud>
+				<vm_utilization_on_mobile>20</vm_utilization_on_mobile>
+				<sub_application_number>3</sub_application_number>
+				<num_dependency>2</num_dependency>
+				<dependency>0</dependency>
+				<dependency>1</dependency>
+			</sub_application>
 		</sub_applications>
 	</application>
 	<application name="AUGMENTED_REALITY">

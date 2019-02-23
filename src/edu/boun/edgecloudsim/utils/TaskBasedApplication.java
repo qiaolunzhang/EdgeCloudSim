@@ -63,17 +63,18 @@ public class TaskBasedApplication {
 	 * Add a dependency dependencyTaskId for task taskId
 	 */
 	public void addDependency(int taskId, int dependencyTaskId) {
-		int task_index = getTaskIndex(taskId);
-		int dependency_index = getTaskIndex(dependencyTaskId);
-		dependency[task_index][dependency_index] = 1;
-		dependency_met[task_index][dependency_index] = 0;
+		//int task_index = getTaskIndex(taskId);
+		//int dependency_index = getTaskIndex(dependencyTaskId);
+		dependency[taskId][dependencyTaskId] = 1;
+		dependency_met[taskId][dependencyTaskId] = 0;
 	}
 	
 	/*
+	 * taskId: the index in subtaskLookUpTable
 	 * remove dependency when a task finished
 	 */
 	private void removeDependency(int taskId) {
-		int task_index = getTaskIndex(taskId);
+		int task_index = taskId - startIndex;
 		for (int i=0; i<numSubTask; i++) {
 			dependency_met[i][task_index] = 1;
 		}
@@ -102,7 +103,7 @@ public class TaskBasedApplication {
 		for (int index=0; index<numSubTask; index++) {
 			// check if the dependencies has been met and whether the task has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(tasks[index]);
+				tasktoSubmit.add(index+startIndex);
 				submitted[index] = true; 
 			}
 		}
@@ -115,7 +116,7 @@ public class TaskBasedApplication {
 		for (int index=0; index<numSubTask; index++) {
 			// check whether dependencies has been met and whether the task has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(tasks[index]);
+				tasktoSubmit.add(index+startIndex);
 				submitted[index] = true; 
 			}
 		}
@@ -123,7 +124,7 @@ public class TaskBasedApplication {
 	}
 	
 	public boolean checkReadySubmit(int taskId) {
-		int taskIndex = getTaskIndex(taskId);
+		int taskIndex = taskId - startIndex;
 		if (checkDependency(taskIndex) && submitted[taskIndex] == false) {
 			return true;
 		} else {
