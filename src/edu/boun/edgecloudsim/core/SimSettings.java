@@ -30,7 +30,7 @@ import org.w3c.dom.NodeList;
 import com.sun.javafx.image.impl.IntArgb;
 
 import edu.boun.edgecloudsim.utils.SimLogger;
-import edu.boun.edgecloudsim.utils.TaskBasedTask;
+import edu.boun.edgecloudsim.utils.TaskBasedApplication;
 
 public class SimSettings {
 	private static SimSettings instance = null;
@@ -108,14 +108,16 @@ public class SimSettings {
     // [11] vm utilization on mobile (%)
     // [12] delay sensitivity [0-1]
     private double[][] taskLookUpTable = null;
+    private double[][] subtaskLookUpTable = null;
     
     private String[] taskNames = null;
+    private String[] subtaskNames = null;
     
     // The length is the same as the number of tasks(tasks are divided to subtasks)
     // -1 represents not subtask, if the task is subtask, store index in dependencyLookUpTable
-    private int[] subTaskLookUpTable = null;
+    private int[] taskTypeIndex = null;
     
-    private TaskBasedTask[] dependencyLookUpTable = null;
+    private TaskBasedApplication[] dependencyLookUpTable = null;
 
 	private SimSettings() {
 		NUM_OF_PLACE_TYPES = 0;
@@ -579,6 +581,51 @@ public class SimSettings {
 		taskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
 	}
 	
+	private void addSubTask(Element appElement, int taskIndex) {
+		isAttribtuePresent(appElement, "name");
+		isElementPresent(appElement, "usage_percentage");
+		isElementPresent(appElement, "prob_cloud_selection");
+		isElementPresent(appElement, "poisson_interarrival");
+		isElementPresent(appElement, "active_period");
+		isElementPresent(appElement, "idle_period");
+		isElementPresent(appElement, "data_upload");
+		isElementPresent(appElement, "data_download");
+		isElementPresent(appElement, "task_length");
+		isElementPresent(appElement, "required_core");
+		isElementPresent(appElement, "vm_utilization_on_edge");
+		isElementPresent(appElement, "vm_utilization_on_cloud");
+		isElementPresent(appElement, "vm_utilization_on_mobile");
+
+		String taskName = appElement.getAttribute("name");
+		subtaskNames[taskIndex] = taskName;
+				
+		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
+		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
+		double poisson_interarrival = Double.parseDouble(appElement.getElementsByTagName("poisson_interarrival").item(0).getTextContent());
+		double active_period = Double.parseDouble(appElement.getElementsByTagName("active_period").item(0).getTextContent());
+		double idle_period = Double.parseDouble(appElement.getElementsByTagName("idle_period").item(0).getTextContent());
+		double data_upload = Double.parseDouble(appElement.getElementsByTagName("data_upload").item(0).getTextContent());
+		double data_download = Double.parseDouble(appElement.getElementsByTagName("data_download").item(0).getTextContent());
+		double task_length = Double.parseDouble(appElement.getElementsByTagName("task_length").item(0).getTextContent());
+		double required_core = Double.parseDouble(appElement.getElementsByTagName("required_core").item(0).getTextContent());
+		double vm_utilization_on_edge = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
+		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
+		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
+				
+		subtaskLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
+		subtaskLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
+		subtaskLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
+		subtaskLookUpTable[taskIndex][3] = active_period; //active period (sec)
+		subtaskLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
+		subtaskLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
+		subtaskLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
+		subtaskLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
+		subtaskLookUpTable[taskIndex][8] = required_core; //required # of core
+		subtaskLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
+		subtaskLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
+		subtaskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+	}
+	
 	/**
 	 * add the dependency to the corresponding TaskBasedTask
 	 * @param subAppelement: the subTaskApplication element
@@ -593,9 +640,9 @@ public class SimSettings {
 				Node dependencyNode = dependencyList.item(i);
 				//Element dependencyElement = (Element) dependencyNode;
 				int dependencyIndex = Integer.parseInt(dependencyNode.getTextContent());
-				int dependencyLookUpTableIndex = subTaskLookUpTable[taskIndex];
-				TaskBasedTask taskBasedTask = dependencyLookUpTable[dependencyLookUpTableIndex];
-				taskBasedTask.addDependency(taskIndex+subTaskIndex, taskIndex+dependencyIndex);
+				int dependencyLookUpTableIndex = taskTypeIndex[taskIndex];
+				TaskBasedApplication taskBasedTask = dependencyLookUpTable[dependencyLookUpTableIndex];
+				taskBasedTask.addDependency(subTaskIndex, dependencyIndex);
 			}
 		}
 	}
@@ -611,68 +658,64 @@ public class SimSettings {
 			doc.getDocumentElement().normalize();
 			NodeList appList = doc.getElementsByTagName("application");
 
+			// get the number of taskBasedAppliation
 			int taskBasedAppCount = 0;
-			int taskCount = 0;
+			int subtaskCount = 0;
 			for (int i = 0; i < appList.getLength(); i++) {
 				Node appNode = appList.item(i);
 				Element appElement = (Element) appNode; 
 
 				if (isTaskBasedApplication(appElement, "sub_applications")) {
 					taskBasedAppCount++;
-					//NodeList subappList = appElement.getElementsByTagName("sub_appli)
 					NodeList subappList = appElement.getElementsByTagName("sub_application");
 					int subapp_cnt = subappList.getLength();
-					taskCount = taskCount + subapp_cnt;
-				}
-				else {
-					taskCount++;
+					subtaskCount = subtaskCount + subapp_cnt;
 				}
 			}
 
-			taskLookUpTable = new double[taskCount][13];
-			taskNames = new String[taskCount];
-			subTaskLookUpTable = new int[taskCount]; 
+			taskLookUpTable = new double[appList.getLength()][13];
+			subtaskLookUpTable = new double[subtaskCount][13];
+			taskNames = new String[appList.getLength()];
+			subtaskNames = new String[subtaskCount];
+			taskTypeIndex = new int[appList.getLength()]; 
 
-			dependencyLookUpTable = new TaskBasedTask[taskBasedAppCount]; 
+			dependencyLookUpTable = new TaskBasedApplication[taskBasedAppCount]; 
 
-			// it's wrong to just used the number of appList, because subApp will increase the total amount
+
 			int taskIndex = 0;
+			int subtaskIndex = 0;
 			int dependencyLookUpTableIndex = 0;
 			for (int i = 0; i < appList.getLength(); i++) {
 				Node appNode = appList.item(i);
 	
 				Element appElement = (Element) appNode;
+				addTask(appElement, taskIndex);
+
 				if (isTaskBasedApplication(appElement, "sub_applications")) {
 					// update subTaskLookUpTable
-					subTaskLookUpTable[taskIndex] = dependencyLookUpTableIndex; 
+					taskTypeIndex[taskIndex] = dependencyLookUpTableIndex; 
 					// get the sub_applications Element
 					NodeList subappList = appElement.getElementsByTagName("sub_application");
 					int subapp_cnt = subappList.getLength();
-					int[] subAppIndexList = new int[subapp_cnt];
 
-					// set the subAppIndex in subAppIndexList
-					for (int j=0; j<subapp_cnt; j++) {
-						subAppIndexList[j] = taskIndex + j; 
-					}
-					dependencyLookUpTable[dependencyLookUpTableIndex] = new TaskBasedTask(subapp_cnt, subAppIndexList);
+					dependencyLookUpTable[dependencyLookUpTableIndex] = new TaskBasedApplication(subapp_cnt, subtaskIndex);
 					
 					// add task
 					for (int j=0; j<subappList.getLength(); j++) {
 						Node subAppNode = subappList.item(j);
 						Element subAppelement = (Element) subAppNode;
-						addTask(subAppelement, taskIndex+j);
+						addSubTask(subAppelement, subtaskIndex);
 						addDependency(subAppelement, taskIndex, j);
+						subtaskIndex++;
 					}
 
-
 					dependencyLookUpTableIndex++;
-					taskIndex = taskIndex + subapp_cnt;
 				}
 				else {
-					addTask(appElement, taskIndex);
-					subTaskLookUpTable[taskIndex] = -1; 
-		    	taskIndex++;
+					taskTypeIndex[taskIndex] = -1; 
 				}
+
+		    	taskIndex++;
 			}
 	
 		} catch (Exception e) {
@@ -680,6 +723,7 @@ public class SimSettings {
 			e.printStackTrace();
 			System.exit(0);
 		}
+		System.out.println("Applications.xml loaded");
 	}
 
 	private void parseEdgeDevicesXML(String filePath)
