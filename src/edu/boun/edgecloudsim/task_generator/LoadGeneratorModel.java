@@ -15,10 +15,13 @@ package edu.boun.edgecloudsim.task_generator;
 
 import java.util.List;
 
+import edu.boun.edgecloudsim.utils.TaskBasedTask;
 import edu.boun.edgecloudsim.utils.TaskProperty;
 
 public abstract class LoadGeneratorModel {
 	protected List<TaskProperty> taskList;
+	protected List<TaskProperty> subtaskList;
+	protected List<TaskBasedTask> taskBasedTaskList;
 	protected int numberOfMobileDevices;
 	protected double simulationTime;
 	protected String simScenario;

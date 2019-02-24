@@ -21,6 +21,7 @@ import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.utils.TaskProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.SimUtils;
+import edu.boun.edgecloudsim.utils.TaskBasedTask;
 
 public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 	int taskTypeOfDevices[];
@@ -31,10 +32,13 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 	@Override
 	public void initializeModel() {
 		taskList = new ArrayList<TaskProperty>();
+		subtaskList = new ArrayList<TaskProperty>();
+		taskBasedTaskList = new ArrayList<TaskBasedTask>();
 		
 		//exponential number generator for file input size, file output size and task length
 		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getTaskLookUpTable().length][3];
-		
+		//exponential number generator for sub-task
+		ExponentialDistribution[][] subtaskExpRngList = new ExponentialDistribution[SimSettings.getInstance().getSubtaskLookUpTable().length][3];
 		//create random number generator for each place
 		for(int i=0; i<SimSettings.getInstance().getTaskLookUpTable().length; i++) {
 			if(SimSettings.getInstance().getTaskLookUpTable()[i][0] ==0)
@@ -43,6 +47,15 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 			expRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][5]);
 			expRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][6]);
 			expRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][7]);
+		}
+		// create random number generator for each place for subtask
+		for(int i=0; i<SimSettings.getInstance().getSubtaskLookUpTable().length; i++) {
+			if(SimSettings.getInstance().getSubtaskLookUpTable()[i][0]==0)
+				continue;
+			
+			subtaskExpRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][5]);
+			subtaskExpRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][6]);
+			subtaskExpRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][7]);
 		}
 		
 		//Each mobile device utilizes an app type (task type)
@@ -90,7 +103,20 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 					continue;
 				}
 				
-				taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList));
+				if (SimSettings.getInstance().isTaskBasedApplication(randomTaskType)) {
+					// create an object of TaskBasedTask
+					int subtaskNum = SimSettings.getInstance().getsubTaskNum(randomTaskType);
+					for (int subTaskIndex=0; subTaskIndex<subtaskNum; subTaskIndex++) {
+						// add the subtask to taskList
+						
+						// map the subtask to TaskBasedTask
+						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, randomTaskType);
+						taskList.add(new TaskProperty(i, subRandomTaskType, virtualTime, subtaskExpRngList));
+					}
+				}
+				else {
+					taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList));
+				}
 			}
 		}
 	}
