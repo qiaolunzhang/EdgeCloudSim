@@ -48,15 +48,13 @@ public class TaskBasedApplication {
 	/*
 	 * given a taskId, return the task_index`
 	 */
-	private int getTaskIndex(int taskId) {
-		int task_index = 0;
-		for (int i=0; i<numSubTask; i++) {
-			if (tasks[i] == taskId) {
-				task_index = i;
-				break;
-			}
-		}
-		return task_index;
+	public int getSubTaskIndex(int index) {
+		return startIndex + index;
+	}
+	
+	
+	public int getSubTaskNum() {
+		return numSubTask;
 	}
 
 	/*
