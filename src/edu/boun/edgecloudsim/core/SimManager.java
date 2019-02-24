@@ -96,6 +96,7 @@ public class SimManager extends SimEntity {
 		mobileDeviceManager = scenarioFactory.getMobileDeviceManager();
 		mobileDeviceManager.initialize();
 		
+		
 		instance = this;
 	}
 	

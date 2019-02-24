@@ -495,11 +495,47 @@ public class SimSettings {
 	{
 		return taskLookUpTable;
 	}
+
+	public double[][] getSubtaskLookUpTable()
+	{
+		return subtaskLookUpTable;
+	}
 	
 	public String getTaskName(int taskType)
 	{
 		return taskNames[taskType];
 	}
+	
+	public boolean isTaskBasedApplication(int taskType)
+	{
+		if (taskTypeIndex[taskType] >= 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	public int getsubTaskNum(int taskType) {
+		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
+		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
+		return taskBasedApplication.getSubTaskNum();
+	}
+	
+	public double[] getsubTaskParameter(int taskType, int index) {
+		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
+		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
+		int subTaskIndex = taskBasedApplication.getSubTaskIndex(index);
+		return subtaskLookUpTable[subTaskIndex];
+	}
+
+	public int getsubTaskIndex(int taskType, int index) {
+		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
+		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
+		int subTaskIndex = taskBasedApplication.getSubTaskIndex(index);
+		return subTaskIndex;
+	}
+	
 	
 	private void isAttribtuePresent(Element element, String key) {
         String value = element.getAttribute(key);
