@@ -59,6 +59,8 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 		}
 		
 		//Each mobile device utilizes an app type (task type)
+		int taskPropertyId = 0;
+		int taskBasedTaskId = 0;
 		taskTypeOfDevices = new int[numberOfMobileDevices];
 		for(int i=0; i<numberOfMobileDevices; i++) {
 			int randomTaskType = -1;
@@ -111,11 +113,15 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 						
 						// map the subtask to TaskBasedTask
 						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, randomTaskType);
-						taskList.add(new TaskProperty(i, subRandomTaskType, virtualTime, subtaskExpRngList));
+						TaskProperty taskProperty = new TaskProperty(i, subRandomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
+						//int taskId = taskProperty.getCloud
+						taskList.add(taskProperty);
+						taskPropertyId++;
 					}
 				}
 				else {
-					taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList));
+					taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList, taskPropertyId));
+					taskPropertyId++;
 				}
 			}
 		}

@@ -36,8 +36,14 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 	private static final int REQUEST_RECIVED_BY_EDGE_DEVICE = BASE + 2;
 	private static final int RESPONSE_RECEIVED_BY_MOBILE_DEVICE = BASE + 3;
 	private int taskIdCounter=0;
+	private MobileDeviceManager mobileDeviceManager;
+	
 	
 	public DefaultMobileDeviceManager() throws Exception{
+	}
+
+	public void setMobileDeviceManager(MobileDeviceManager _mMobileDeviceManager) {
+		mobileDeviceManager = _mMobileDeviceManager;
 	}
 
 	@Override
