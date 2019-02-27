@@ -17,7 +17,7 @@ public class TaskBasedTaskStatus {
 		mKeyMap = new HashMap<Integer, Integer>();
 	}
 	
-	public TaskBasedTaskStatus getInstance() {
+	public static TaskBasedTaskStatus getInstance() {
 		if (instance == null) {
 			instance = new TaskBasedTaskStatus();
 		}
@@ -60,5 +60,14 @@ public class TaskBasedTaskStatus {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
 		boolean result = taskBasedTaskMap.get(taskBasedTaskId).checkTaskBasedTaskEnd();
 		return result;
+	}
+	
+	public boolean checkSubTask(int taskPropertyId) {
+		boolean exist = mKeyMap.containsKey(taskPropertyId);
+		return exist;
+	}
+	
+	public void reset() {
+		instance = null;
 	}
 }

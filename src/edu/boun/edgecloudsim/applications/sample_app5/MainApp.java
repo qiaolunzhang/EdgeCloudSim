@@ -11,6 +11,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import edu.boun.edgecloudsim.core.ScenarioFactory;
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
+import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.SimUtils;
 
@@ -111,6 +112,7 @@ public class MainApp {
 					now = df.format(ScenarioEndDate);
 					SimLogger.printLine("Scenario finished at " + now +  ". It took " + SimUtils.getTimeDifference(ScenarioStartDate,ScenarioEndDate));
 					SimLogger.printLine("----------------------------------------------------------------------");
+					TaskBasedTaskStatus.getInstance().reset();
 				}//End of orchestrators loop
 			}//End of scenarios loop
 		}//End of mobile devices loop
