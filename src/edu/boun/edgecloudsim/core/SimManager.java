@@ -196,8 +196,18 @@ public class SimManager extends SimEntity {
 		}
 		
 		//Creation of tasks are scheduled here!
-		for(int i=0; i< loadGeneratorModel.getTaskList().size(); i++)
-			schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+		for(int i=0; i< loadGeneratorModel.getTaskList().size(); i++) {
+			int taskPropertyId = loadGeneratorModel.getTaskList().get(i).getTaskPropertyId();
+			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+				boolean ready_to_submit = TaskBasedTaskStatus.getInstance().checkReadySubmit(taskPropertyId);
+				if (ready_to_submit) {
+					schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+				}
+			}
+			else {
+				schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+			}
+	}
 		
 		//Periodic event loops starts from here!
 		schedule(getId(), 5, CHECK_ALL_VM);
