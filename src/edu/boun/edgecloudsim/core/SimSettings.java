@@ -522,6 +522,13 @@ public class SimSettings {
 		return taskBasedApplication.getSubTaskNum();
 	}
 	
+	public int[][] getsubTaskDependency(int taskType) {
+		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
+		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
+		int[][] dependency = taskBasedApplication.getDependency();
+		return dependency;
+	}
+	
 	public double[] getsubTaskParameter(int taskType, int index) {
 		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
 		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
