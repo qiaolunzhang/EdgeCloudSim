@@ -8,6 +8,7 @@ public class TaskBasedTaskStatus {
 	
 
 	private static TaskBasedTaskStatus instance = null;
+	private int simManagerId;
 	private int numTaskBasedTask;
 	private Map<Integer, TaskBasedTask> taskBasedTaskMap;
 	private Map<Integer, Integer> mKeyMap;
@@ -65,6 +66,14 @@ public class TaskBasedTaskStatus {
 	public boolean checkSubTask(int taskPropertyId) {
 		boolean exist = mKeyMap.containsKey(taskPropertyId);
 		return exist;
+	}
+	
+	public void setSimManagerId(int id) {
+		simManagerId = id;
+	}
+	
+	public int getSimManagerId() {
+		return simManagerId;
 	}
 	
 	public void reset() {

@@ -15,6 +15,8 @@
 
 package edu.boun.edgecloudsim.edge_client;
 
+import java.util.List;
+
 import org.cloudbus.cloudsim.UtilizationModel;
 import org.cloudbus.cloudsim.UtilizationModelFull;
 import org.cloudbus.cloudsim.Vm;
@@ -25,6 +27,7 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.core.SimSettings.NETWORK_DELAY_TYPES;
+import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
 import edu.boun.edgecloudsim.network.NetworkModel;
 import edu.boun.edgecloudsim.utils.TaskProperty;
 import edu.boun.edgecloudsim.utils.Location;
@@ -75,6 +78,16 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 	protected void processCloudletReturn(SimEvent ev) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		Task task = (Task) ev.getData();
+		//System.out.println(task.getTaskPropertyId());
+		// schedule new task
+		int taskPropertyId = task.getTaskPropertyId();
+		System.out.println(taskPropertyId);
+		if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+			int simManagerId = TaskBasedTaskStatus.getInstance().getSimManagerId();
+			List<Integer> subTask_ready = TaskBasedTaskStatus.getInstance().getTaskSubmit(taskPropertyId);
+			scheduleNow(simManagerId, 5, subTask_ready);
+			System.out.println("subtask finished");
+		}
 		
 		SimLogger.getInstance().taskExecuted(task.getCloudletId());
 
@@ -289,6 +302,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		//set the owner of this task
 		task.setUserId(this.getId());
 		task.setTaskType(edgeTask.getTaskType());
+		task.setTaskPropertyId(edgeTask.getTaskPropertyId());
 		
 		if (utilizationModelCPU instanceof CpuUtilizationModel_Custom) {
 			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(task);

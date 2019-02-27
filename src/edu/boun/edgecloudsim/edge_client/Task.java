@@ -23,6 +23,7 @@ public class Task extends Cloudlet {
 	private int hostIndex;
 	private int vmIndex;
 	private int datacenterId;
+	private int taskPropertyId;
 
 	public Task(int _mobileDeviceId, int cloudletId, long cloudletLength, int pesNumber,
 			long cloudletFileSize, long cloudletOutputSize,
@@ -34,6 +35,7 @@ public class Task extends Cloudlet {
 				utilizationModelBw);
 		
 		mobileDeviceId = _mobileDeviceId;
+		taskPropertyId = -1;
 	}
 
 	
@@ -55,6 +57,10 @@ public class Task extends Cloudlet {
 	
 	public void setTaskType(int _type){
 		type=_type;
+	}
+	
+	public void setTaskPropertyId(int _taskPropertyId) {
+		taskPropertyId = _taskPropertyId;
 	}
 
 	public int getMobileDeviceId(){
@@ -79,5 +85,9 @@ public class Task extends Cloudlet {
 	
 	public int getTaskType(){
 		return type;
+	}
+	
+	public int getTaskPropertyId() {
+		return taskPropertyId;
 	}
 }

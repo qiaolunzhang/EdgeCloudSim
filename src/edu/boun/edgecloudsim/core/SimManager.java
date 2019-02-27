@@ -39,6 +39,7 @@ public class SimManager extends SimEntity {
 	private static final int GET_LOAD_LOG = 2;
 	private static final int PRINT_PROGRESS = 3;
 	private static final int STOP_SIMULATION = 4;
+	private static final int CREATE_SUB_TASK = 5;
 	
 	private String simScenario;
 	private String orchestratorPolicy;
@@ -195,6 +196,9 @@ public class SimManager extends SimEntity {
 				mobileDeviceManager.submitVmList(mobileServerManager.getVmList(i));
 		}
 		
+		// log the SimManagerId to TaskBasedTaskStatus.java
+		TaskBasedTaskStatus.getInstance().setSimManagerId(getId());
+		
 		//Creation of tasks are scheduled here!
 		for(int i=0; i< loadGeneratorModel.getTaskList().size(); i++) {
 			int taskPropertyId = loadGeneratorModel.getTaskList().get(i).getTaskPropertyId();
@@ -207,7 +211,7 @@ public class SimManager extends SimEntity {
 			else {
 				schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
 			}
-	}
+		}
 		
 		//Periodic event loops starts from here!
 		schedule(getId(), 5, CHECK_ALL_VM);
@@ -267,6 +271,8 @@ public class SimManager extends SimEntity {
 					System.exit(0);
 				}
 				break;
+			case CREATE_SUB_TASK:
+				System.out.println("receive instruction to create new sub TAask");
 			default:
 				Log.printLine(getName() + ": unknown event type");
 				break;
