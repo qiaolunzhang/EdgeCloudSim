@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 
 import edu.boun.edgecloudsim.core.SimSettings;
+import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
 import edu.boun.edgecloudsim.utils.TaskProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.SimUtils;
@@ -108,16 +109,35 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 				if (SimSettings.getInstance().isTaskBasedApplication(randomTaskType)) {
 					// create an object of TaskBasedTask
 					int subtaskNum = SimSettings.getInstance().getsubTaskNum(randomTaskType);
+
+					int[][] dependency_task = SimSettings.getInstance().getsubTaskDependency(randomTaskType);
+					
+					TaskBasedTaskStatus.getInstance().addTaskBasedTask(subtaskNum, taskBasedTaskId);
+					
+					int[] id_subtask_list = new int[subtaskNum];
+					
 					for (int subTaskIndex=0; subTaskIndex<subtaskNum; subTaskIndex++) {
-						// add the subtask to taskList
-						
 						// map the subtask to TaskBasedTask
-						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, randomTaskType);
+						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, subTaskIndex);
 						TaskProperty taskProperty = new TaskProperty(i, subRandomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
 						//int taskId = taskProperty.getCloud
 						taskList.add(taskProperty);
+						id_subtask_list[subTaskIndex] = taskPropertyId;
 						taskPropertyId++;
 					}
+					
+					// add the taskPropertyId list
+					TaskBasedTaskStatus.getInstance().addSubTaskIdList(id_subtask_list, taskBasedTaskId);
+					// add the dependency
+					for (int id=0; id<dependency_task.length; id++) {
+						for (int id_dependency=0; id_dependency < dependency_task[id].length; id_dependency++)
+							if (dependency_task[id][id_dependency] ==  1) {
+								// pass id_subtask_list[id] because what we pass is the property_id, not the index
+								TaskBasedTaskStatus.getInstance().addDependency(id_subtask_list[id], id_subtask_list[id_dependency], taskBasedTaskId);
+							}
+					}
+					taskBasedTaskId++;
+					
 				}
 				else {
 					taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList, taskPropertyId));

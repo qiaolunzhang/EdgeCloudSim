@@ -129,4 +129,8 @@ public class TaskBasedApplication {
 			return false;
 		}
 	}
+	
+	public int[][] getDependency() {
+		return dependency;
+	}
 }
