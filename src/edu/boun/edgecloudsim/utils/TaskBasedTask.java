@@ -11,6 +11,8 @@ public class TaskBasedTask {
 	private boolean[] submitted;
 	// finished used to check if the task has ended
 	private boolean[] finished;
+	// -1: not tracked 0: finished 1: not finished 2: failed
+	private int taskFinalStatus;
 	/*
 	 * dependency[0][1] = 1 means task 0 is dependent on task 1
 	 * 	 0 1
@@ -33,6 +35,7 @@ public class TaskBasedTask {
 		index2PropertyId = new HashMap<Integer, Integer>();
 		submitted = new boolean[numSubTask];
 		finished = new boolean[numSubTask];
+		taskFinalStatus = -1;
 		for (int i=0; i<numSubTask; i++) {
 			submitted[i] = false; 
 			finished[i] = false; 
@@ -112,12 +115,19 @@ public class TaskBasedTask {
 			// check if the dependencies has been met and whether the task has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
 				tasktoSubmit.add(index2PropertyId.get(index));
-				submitted[index] = true; 
+				//submitted[index] = true; 
 			}
 		}
 		
 		return tasktoSubmit;
 	}
+	
+	public void setTaskSubmit(int taskPropertyId) {
+		//removeDependency(taskPropertyId);
+		int index_submitted = propertyId2Index.get(taskPropertyId);
+		submitted[index_submitted] = true;
+	}
+	
 	
 	public List<Integer> getInitialTaskToSubmit(){
 		List<Integer> tasktoSubmit = new ArrayList<>();
@@ -148,5 +158,33 @@ public class TaskBasedTask {
 			}
 		}
 		return flag;
+	}
+	
+	public void checkAllSubmittedAndSetStatus() {
+		boolean flag_submit = true;
+		boolean flag_finished = true;
+		for (int i=0; i<numSubTask; i++) {
+			if (submitted[i]== false) {
+				flag_submit = false;
+			}
+			if (finished[i] == false) {
+				flag_finished = false;
+			}
+		}
+		if (flag_submit == false) {
+			// set as unfinished
+			taskFinalStatus = 1;
+		} else if (flag_finished == true) {
+			// set as finished
+			taskFinalStatus = 0;
+		}
+	}
+	
+	public void setTaskFinalStatus(int status) {
+		taskFinalStatus = status;
+	}
+	
+	public int getTaskFinalStatus() {
+		return taskFinalStatus;
 	}
 }

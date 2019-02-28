@@ -48,6 +48,20 @@ public class TaskProperty {
     	submitted = false;
 	}
     
+    public TaskProperty(int _mobileDeviceId, int _subTaskType, int _taskType, double _startTime, ExponentialDistribution[][] expRngList, int _taskPropertyId) {
+    	mobileDeviceId=_mobileDeviceId;
+    	startTime=_startTime;
+    	taskType=_taskType;
+    	
+    	inputFileSize = (long)expRngList[_subTaskType][0].sample();
+    	outputFileSize =(long)expRngList[_subTaskType][1].sample();
+    	length = (long)expRngList[_subTaskType][2].sample();
+    	
+    	pesNumber = (int)SimSettings.getInstance().getSubtaskLookUpTable()[_subTaskType][8];
+    	taskPropertyId = _taskPropertyId;
+    	submitted = false;
+    }
+	
     public void setSubmitted() {
     	submitted = true;
     }
