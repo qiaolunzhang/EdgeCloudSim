@@ -81,12 +81,23 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		//System.out.println(task.getTaskPropertyId());
 		// schedule new task
 		int taskPropertyId = task.getTaskPropertyId();
-		System.out.println(taskPropertyId);
+		//System.out.println(taskPropertyId);
 		if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
 			int simManagerId = TaskBasedTaskStatus.getInstance().getSimManagerId();
+			// in the meanwhile set the task as finished 
+			// we can only set the task submitted here
 			List<Integer> subTask_ready = TaskBasedTaskStatus.getInstance().getTaskSubmit(taskPropertyId);
-			scheduleNow(simManagerId, 5, subTask_ready);
-			System.out.println("subtask finished");
+			for (int i=0; i<subTask_ready.size(); i++) {
+				scheduleNow(simManagerId, 5, subTask_ready.get(i));
+				//System.out.println("Submitting a sub task: " + subTask_ready.get(i));
+			}
+			//scheduleNow(simManagerId, 5, subTask_ready);
+			
+			// check if the task-based task has ended
+			boolean ended_flag = TaskBasedTaskStatus.getInstance().checkTaskBasedTaskEnd(taskPropertyId);
+			if (ended_flag) {
+				//System.out.println("a new task-based task has ended");
+			}
 		}
 		
 		SimLogger.getInstance().taskExecuted(task.getCloudletId());
@@ -203,7 +214,8 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 				task.getTaskType(),
 				(int)task.getCloudletLength(),
 				(int)task.getCloudletFileSize(),
-				(int)task.getCloudletOutputSize());
+				(int)task.getCloudletOutputSize(),
+				(int)task.getTaskPropertyId());
 
 		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
 		
