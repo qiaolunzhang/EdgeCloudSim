@@ -13,7 +13,7 @@
 
 package edu.boun.edgecloudsim.task_generator;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 
@@ -25,6 +25,7 @@ import edu.boun.edgecloudsim.utils.SimUtils;
 import edu.boun.edgecloudsim.utils.TaskBasedTask;
 
 public class IdleActiveLoadGenerator extends LoadGeneratorModel{
+	private Map<Integer, Integer>taskProperty2taskListIndex;
 	int taskTypeOfDevices[];
 	public IdleActiveLoadGenerator(int _numberOfMobileDevices, double _simulationTime, String _simScenario) {
 		super(_numberOfMobileDevices, _simulationTime, _simScenario);
@@ -35,6 +36,7 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 		taskList = new ArrayList<TaskProperty>();
 		subtaskList = new ArrayList<TaskProperty>();
 		taskBasedTaskList = new ArrayList<TaskBasedTask>();
+		taskProperty2taskListIndex = new HashMap<Integer, Integer>();
 		
 		//exponential number generator for file input size, file output size and task length
 		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getTaskLookUpTable().length][3];
@@ -119,8 +121,10 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 					for (int subTaskIndex=0; subTaskIndex<subtaskNum; subTaskIndex++) {
 						// map the subtask to TaskBasedTask
 						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, subTaskIndex);
-						TaskProperty taskProperty = new TaskProperty(i, subRandomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
+						TaskProperty taskProperty = new TaskProperty(i, subRandomTaskType, randomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
 						//int taskId = taskProperty.getCloud
+						int  taskListIndex = taskList.size();
+						taskProperty2taskListIndex.put(taskPropertyId, taskListIndex);
 						taskList.add(taskProperty);
 						id_subtask_list[subTaskIndex] = taskPropertyId;
 						taskPropertyId++;
@@ -151,6 +155,10 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 	public int getTaskTypeOfDevice(int deviceId) {
 		// TODO Auto-generated method stub
 		return taskTypeOfDevices[deviceId];
+	}
+	
+	public int getTaskListIndex(int taskPropertyId) {
+		return taskProperty2taskListIndex.get(taskPropertyId);
 	}
 
 }

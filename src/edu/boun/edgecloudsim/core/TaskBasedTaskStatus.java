@@ -57,11 +57,35 @@ public class TaskBasedTaskStatus {
 		return newTaskList;
 	}
 	
+	public void setTaskSubmit(int taskPropertyId) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		taskBasedTaskMap.get(taskBasedTaskId).setTaskSubmit(taskPropertyId);
+	}
+	
 	public boolean checkTaskBasedTaskEnd(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
 		boolean result = taskBasedTaskMap.get(taskBasedTaskId).checkTaskBasedTaskEnd();
 		return result;
 	}
+	
+	public void setTaskBasedTaskFinalStatus(int taskPropertyId, int status) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		taskBasedTaskMap.get(taskBasedTaskId).setTaskFinalStatus(status);
+	}
+	
+	public int getTaskBasedTaskFinalStatus(int taskPropertyId) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		int status = taskBasedTaskMap.get(taskBasedTaskId).getTaskFinalStatus();
+		return status;
+	}
+	
+
+	public void checkAllSubmittedAndSetStatus() {
+		for (Integer key: taskBasedTaskMap.keySet()) {
+			taskBasedTaskMap.get(key).checkAllSubmittedAndSetStatus();
+		}
+	}
+
 	
 	public boolean checkSubTask(int taskPropertyId) {
 		boolean exist = mKeyMap.containsKey(taskPropertyId);
@@ -78,5 +102,25 @@ public class TaskBasedTaskStatus {
 	
 	public void reset() {
 		instance = null;
+	}
+	
+	public void getStatics() {
+		int success = 0;
+		int unfinished = 0;
+		int fail = 0;
+		for (Integer key: taskBasedTaskMap.keySet()) {
+			int status = taskBasedTaskMap.get(key).getTaskFinalStatus();
+			if (status == 0) {
+				success++;
+			} else if (status == 1) {
+				unfinished++;
+			} else {
+				fail++;
+			}
+		}
+		
+		System.out.println("success number: " + success);
+		System.out.println("unfinished number: " + unfinished);
+		System.out.println("fail number: " + fail);
 	}
 }

@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
+import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
 import edu.boun.edgecloudsim.core.SimSettings.NETWORK_DELAY_TYPES;
 import edu.boun.edgecloudsim.utils.SimLogger.NETWORK_ERRORS;
 
@@ -99,9 +100,9 @@ public class SimLogger {
 	}
 
 	public void addLog(int taskId, int taskType, int taskLenght, int taskInputType,
-			int taskOutputSize) {
+			int taskOutputSize, int taskPropertyId) {
 		// printLine(taskId+"->"+taskStartTime);
-		taskMap.put(taskId, new LogItem(taskType, taskLenght, taskInputType, taskOutputSize));
+		taskMap.put(taskId, new LogItem(taskType, taskLenght, taskInputType, taskOutputSize, taskPropertyId));
 	}
 
 	public void taskStarted(int taskId, double time) {
@@ -256,13 +257,43 @@ public class SimLogger {
 			appendToFile(locationBW, "#auto generated file!");
 		}
 
+		TaskBasedTaskStatus.getInstance().checkAllSubmittedAndSetStatus();
+
 		// extract the result of each task and write it to the file if required
 		for (Map.Entry<Integer, LogItem> entry : taskMap.entrySet()) {
 			Integer key = entry.getKey();
 			LogItem value = entry.getValue();
-
+			boolean isSubTask = false;
+			
 			if (value.isInWarmUpPeriod())
 				continue;
+
+			int taskPropertyId = value.getTaskPropertyid();
+
+			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+				//System.out.println("It's a sub-task");
+				isSubTask = true;
+				int status = TaskBasedTaskStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
+				if (status == 2) {
+					continue;
+				}
+				
+				if (value.getStatus() == SimLogger.TASK_STATUS.COMLETED) {
+					continue;
+				}
+				else if(value.getStatus() == SimLogger.TASK_STATUS.CREATED ||
+						value.getStatus() == SimLogger.TASK_STATUS.UPLOADING ||
+						value.getStatus() == SimLogger.TASK_STATUS.PROCESSING ||
+						value.getStatus() == SimLogger.TASK_STATUS.DOWNLOADING)
+				{
+					TaskBasedTaskStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 1);
+				}
+				else {
+					TaskBasedTaskStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 2);
+				}
+			} 
+
+			else {
 
 			if (value.getStatus() == SimLogger.TASK_STATUS.COMLETED) {
 				completedTask[value.getTaskType()]++;
@@ -362,7 +393,10 @@ public class SimLogger {
 				if (fileLogEnabled && SimSettings.getInstance().getDeepFileLoggingEnabled())
 					appendToFile(failBW, value.toString(key));
 			}
+			}
 		}
+		
+		TaskBasedTaskStatus.getInstance().getStatics();
 
 		// calculate total values
 		uncompletedTask[numOfAppTypes] = IntStream.of(uncompletedTask).sum();
@@ -704,8 +738,10 @@ class LogItem {
 	private double bwCost;
 	private double cpuCost;
 	private boolean isInWarmUpPeriod;
+	private int taskPropertyId;
 
-	LogItem(int _taskType, int _taskLenght, int _taskInputType, int _taskOutputSize) {
+	LogItem(int _taskType, int _taskLenght, int _taskInputType, int _taskOutputSize, 
+			int _taskPropertyId) {
 		taskType = _taskType;
 		taskLenght = _taskLenght;
 		taskInputType = _taskInputType;
@@ -713,6 +749,7 @@ class LogItem {
 		networkError = NETWORK_ERRORS.NONE;
 		status = SimLogger.TASK_STATUS.CREATED;
 		taskEndTime = 0;
+		taskPropertyId = _taskPropertyId;
 	}
 	
 	public void taskStarted(double time) {
@@ -898,5 +935,9 @@ class LogItem {
 		else
 			result += "0"; // default failure reason
 		return result;
+	}
+	
+	public int getTaskPropertyid() {
+		return taskPropertyId;
 	}
 }
