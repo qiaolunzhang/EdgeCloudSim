@@ -195,7 +195,8 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 				task.getTaskType(),
 				(int)task.getCloudletLength(),
 				(int)task.getCloudletFileSize(),
-				(int)task.getCloudletOutputSize());
+				(int)task.getCloudletOutputSize(),
+				(int)task.getTaskPropertyId());
 
 		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
 		
