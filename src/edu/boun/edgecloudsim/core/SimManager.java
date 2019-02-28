@@ -206,6 +206,9 @@ public class SimManager extends SimEntity {
 				boolean ready_to_submit = TaskBasedTaskStatus.getInstance().checkReadySubmit(taskPropertyId);
 				if (ready_to_submit) {
 					schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+					//TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
+					// cannot set the sub-task as submitted here, otherwise, all the task will be submitted
+					TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
 				}
 			}
 			else {
@@ -272,7 +275,18 @@ public class SimManager extends SimEntity {
 				}
 				break;
 			case CREATE_SUB_TASK:
-				System.out.println("receive instruction to create new sub TAask");
+				int taskPropertyId = (int) ev.getData();
+				//System.out.println("receive instruction to create new sub-task: " + taskPropertyId);
+				boolean ready_to_submit = TaskBasedTaskStatus.getInstance().checkReadySubmit(taskPropertyId);
+				if (ready_to_submit) {
+					//System.out.println("this task is ready to submit");
+				}
+				int taskListIndex = loadGeneratorModel.getTaskListIndex(taskPropertyId);
+				//System.out.println("the task list index is: " + taskListIndex);
+				TaskProperty taskProperty = loadGeneratorModel.getTaskList().get(taskListIndex);
+				//TODO make sure if we need to modify the starttime here
+				mobileDeviceManager.submitTask(taskProperty);
+				TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
 			default:
 				Log.printLine(getName() + ": unknown event type");
 				break;
