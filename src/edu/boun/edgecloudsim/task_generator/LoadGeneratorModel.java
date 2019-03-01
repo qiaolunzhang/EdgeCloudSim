@@ -15,13 +15,13 @@ package edu.boun.edgecloudsim.task_generator;
 
 import java.util.List;
 
-import edu.boun.edgecloudsim.utils.TaskBasedTask;
-import edu.boun.edgecloudsim.utils.TaskProperty;
+import edu.boun.edgecloudsim.utils.KernelBasedApplication;
+import edu.boun.edgecloudsim.utils.KernelProperty;
 
 public abstract class LoadGeneratorModel {
-	protected List<TaskProperty> taskList;
-	protected List<TaskProperty> subtaskList;
-	protected List<TaskBasedTask> taskBasedTaskList;
+	protected List<KernelProperty> kernelPropertyList;
+	protected List<KernelProperty> kernelPropertyInKernelBasedAppList;
+	protected List<KernelBasedApplication> kernelBasedApplicationList;
 	protected int numberOfMobileDevices;
 	protected double simulationTime;
 	protected String simScenario;
@@ -36,8 +36,8 @@ public abstract class LoadGeneratorModel {
 	 * each task has a virtual start time
 	 * it will be used while generating task
 	 */
-	public List<TaskProperty> getTaskList() {
-		return taskList;
+	public List<KernelProperty> getKernelPropertyList() {
+		return kernelPropertyList;
 	}
 
 	/*
@@ -50,7 +50,7 @@ public abstract class LoadGeneratorModel {
 	 */
 	public abstract int getTaskTypeOfDevice(int deviceId);
 	
-	public int getTaskListIndex(int taskPropertyId) {
+	public int getKernelPropertyIndex(int taskPropertyId) {
 		return -1;
 	};
 	

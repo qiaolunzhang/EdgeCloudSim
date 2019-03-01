@@ -30,7 +30,7 @@ import edu.boun.edgecloudsim.edge_client.mobile_processing_unit.MobileServerMana
 import edu.boun.edgecloudsim.mobility.MobilityModel;
 import edu.boun.edgecloudsim.task_generator.LoadGeneratorModel;
 import edu.boun.edgecloudsim.network.NetworkModel;
-import edu.boun.edgecloudsim.utils.TaskProperty;
+import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
 public class SimManager extends SimEntity {
@@ -39,7 +39,7 @@ public class SimManager extends SimEntity {
 	private static final int GET_LOAD_LOG = 2;
 	private static final int PRINT_PROGRESS = 3;
 	private static final int STOP_SIMULATION = 4;
-	private static final int CREATE_SUB_TASK = 5;
+	private static final int CREATE_KERNEL = 5;
 	
 	private String simScenario;
 	private String orchestratorPolicy;
@@ -197,22 +197,22 @@ public class SimManager extends SimEntity {
 		}
 		
 		// log the SimManagerId to TaskBasedTaskStatus.java
-		TaskBasedTaskStatus.getInstance().setSimManagerId(getId());
+		KernelBasedApplicationStatus.getInstance().setSimManagerId(getId());
 		
 		//Creation of tasks are scheduled here!
-		for(int i=0; i< loadGeneratorModel.getTaskList().size(); i++) {
-			int taskPropertyId = loadGeneratorModel.getTaskList().get(i).getTaskPropertyId();
-			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
-				boolean ready_to_submit = TaskBasedTaskStatus.getInstance().checkReadySubmit(taskPropertyId);
+		for(int i=0; i< loadGeneratorModel.getKernelPropertyList().size(); i++) {
+			int taskPropertyId = loadGeneratorModel.getKernelPropertyList().get(i).getTaskPropertyId();
+			if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
+				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(taskPropertyId);
 				if (ready_to_submit) {
-					schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+					schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getKernelPropertyList().get(i));
 					//TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
 					// cannot set the sub-task as submitted here, otherwise, all the task will be submitted
-					TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
+					KernelBasedApplicationStatus.getInstance().setTaskSubmit(taskPropertyId);
 				}
 			}
 			else {
-				schedule(getId(), loadGeneratorModel.getTaskList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getTaskList().get(i));
+				schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getKernelPropertyList().get(i));
 			}
 		}
 		
@@ -231,8 +231,8 @@ public class SimManager extends SimEntity {
 			switch (ev.getTag()) {
 			case CREATE_TASK:
 				try {
-					TaskProperty edgeTask = (TaskProperty) ev.getData();
-					mobileDeviceManager.submitTask(edgeTask);						
+					KernelProperty edgeTask = (KernelProperty) ev.getData();
+					mobileDeviceManager.submitKernel(edgeTask);						
 				} catch (Exception e) {
 					e.printStackTrace();
 					System.exit(0);
@@ -274,19 +274,19 @@ public class SimManager extends SimEntity {
 					System.exit(0);
 				}
 				break;
-			case CREATE_SUB_TASK:
-				int taskPropertyId = (int) ev.getData();
+			case CREATE_KERNEL:
+				int kernelId = (int) ev.getData();
 				//System.out.println("receive instruction to create new sub-task: " + taskPropertyId);
-				boolean ready_to_submit = TaskBasedTaskStatus.getInstance().checkReadySubmit(taskPropertyId);
+				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(kernelId);
 				if (ready_to_submit) {
-					//System.out.println("this task is ready to submit");
+					//System.out.println("this kernel in kernel-based application is ready to submit");
 				}
-				int taskListIndex = loadGeneratorModel.getTaskListIndex(taskPropertyId);
+				int kernelPropertyIndex = loadGeneratorModel.getKernelPropertyIndex(kernelId);
 				//System.out.println("the task list index is: " + taskListIndex);
-				TaskProperty taskProperty = loadGeneratorModel.getTaskList().get(taskListIndex);
+				KernelProperty kernelProperty = loadGeneratorModel.getKernelPropertyList().get(kernelPropertyIndex);
 				//TODO make sure if we need to modify the starttime here
-				mobileDeviceManager.submitTask(taskProperty);
-				TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
+				mobileDeviceManager.submitKernel(kernelProperty);
+				KernelBasedApplicationStatus.getInstance().setTaskSubmit(kernelId);
 			default:
 				Log.printLine(getName() + ": unknown event type");
 				break;

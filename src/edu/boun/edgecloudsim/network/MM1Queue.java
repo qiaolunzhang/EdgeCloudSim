@@ -14,7 +14,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.edge_server.EdgeHost;
 import edu.boun.edgecloudsim.utils.Location;
 
@@ -41,17 +41,17 @@ public class MM1Queue extends NetworkModel {
 		//Calculate interarrival time and task sizes
 		double numOfTaskType = 0;
 		SimSettings SS = SimSettings.getInstance();
-		for (int i=0; i<SimSettings.getInstance().getTaskLookUpTable().length; i++) {
-			double weight = SS.getTaskLookUpTable()[i][0]/(double)100;
+		for (int i=0; i<SimSettings.getInstance().getApplicationLookUpTable().length; i++) {
+			double weight = SS.getApplicationLookUpTable()[i][0]/(double)100;
 			if(weight != 0) {
-				WlanPoissonMean += (SS.getTaskLookUpTable()[i][2])*weight;
+				WlanPoissonMean += (SS.getApplicationLookUpTable()[i][2])*weight;
 				
-				double percentageOfCloudCommunication = SS.getTaskLookUpTable()[i][1];
+				double percentageOfCloudCommunication = SS.getApplicationLookUpTable()[i][1];
 				WanPoissonMean += (WlanPoissonMean)*((double)100/percentageOfCloudCommunication)*weight;
 				
-				avgTaskInputSize += SS.getTaskLookUpTable()[i][5]*weight;
+				avgTaskInputSize += SS.getApplicationLookUpTable()[i][5]*weight;
 				
-				avgTaskOutputSize += SS.getTaskLookUpTable()[i][6]*weight;
+				avgTaskOutputSize += SS.getApplicationLookUpTable()[i][6]*weight;
 				
 				numOfTaskType++;
 			}
@@ -66,7 +66,7 @@ public class MM1Queue extends NetworkModel {
     * source device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		double delay = 0;
 		Location accessPointLocation = SimManager.getInstance().getMobilityModel().getLocation(sourceDeviceId,CloudSim.clock());
 
@@ -94,7 +94,7 @@ public class MM1Queue extends NetworkModel {
     * destination device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		//Special Case -> edge orchestrator to edge device
 		if(sourceDeviceId == SimSettings.EDGE_ORCHESTRATOR_ID &&
 				destDeviceId == SimSettings.GENERIC_EDGE_DEVICE_ID){

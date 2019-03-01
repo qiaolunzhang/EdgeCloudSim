@@ -27,7 +27,7 @@ import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.edge_orchestrator.EdgeOrchestrator;
 import edu.boun.edgecloudsim.edge_server.EdgeVM;
 import edu.boun.edgecloudsim.edge_client.CpuUtilizationModel_Custom;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
 public class SampleEdgeOrchestrator extends EdgeOrchestrator {
@@ -50,7 +50,7 @@ public class SampleEdgeOrchestrator extends EdgeOrchestrator {
 	 * It is assumed that the edge orchestrator app is running on the edge devices in a distributed manner
 	 */
 	@Override
-	public int getDeviceToOffload(Task task) {
+	public int getDeviceToOffload(Kernel task) {
 		int result = 0;
 		
 		//RODO: return proper host ID
@@ -60,7 +60,7 @@ public class SampleEdgeOrchestrator extends EdgeOrchestrator {
 		}
 		else if(simScenario.equals("TWO_TIER_WITH_EO")){
 			//dummy task to simulate a task with 1 Mbit file size to upload and download 
-			Task dummyTask = new Task(0, 0, 0, 0, 128, 128, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
+			Kernel dummyTask = new Kernel(0, 0, 0, 0, 128, 128, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
 			
 			double wanDelay = SimManager.getInstance().getNetworkModel().getUploadDelay(task.getMobileDeviceId(),
 					SimSettings.CLOUD_DATACENTER_ID, dummyTask /* 1 Mbit */);
@@ -103,7 +103,7 @@ public class SampleEdgeOrchestrator extends EdgeOrchestrator {
 	}
 
 	@Override
-	public Vm getVmToOffload(Task task, int deviceId) {
+	public Vm getVmToOffload(Kernel task, int deviceId) {
 		Vm selectedVM = null;
 		
 		if(deviceId == SimSettings.CLOUD_DATACENTER_ID){

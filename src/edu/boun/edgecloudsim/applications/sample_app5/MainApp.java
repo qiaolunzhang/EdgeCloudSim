@@ -11,7 +11,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 import edu.boun.edgecloudsim.core.ScenarioFactory;
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
+import edu.boun.edgecloudsim.core.KernelBasedApplicationStatus;
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.SimUtils;
 
@@ -78,7 +78,7 @@ public class MainApp {
 					
 					SimLogger.printLine("Scenario started at " + now);
 					SimLogger.printLine("Scenario: " + simScenario + " - Policy: " + orchestratorPolicy + " - #iteration: " + iterationNumber);
-					SimLogger.printLine("Duration: " + SS.getSimulationTime()/3600 + " hour(s) - Poisson: " + SS.getTaskLookUpTable()[0][2] + " - #devices: " + j);
+					SimLogger.printLine("Duration: " + SS.getSimulationTime()/3600 + " hour(s) - Poisson: " + SS.getApplicationLookUpTable()[0][2] + " - #devices: " + j);
 					SimLogger.getInstance().simStarted(outputFolder,"SIMRESULT_" + simScenario + "_"  + orchestratorPolicy + "_" + j + "DEVICES");
 					
 					try
@@ -112,7 +112,7 @@ public class MainApp {
 					now = df.format(ScenarioEndDate);
 					SimLogger.printLine("Scenario finished at " + now +  ". It took " + SimUtils.getTimeDifference(ScenarioStartDate,ScenarioEndDate));
 					SimLogger.printLine("----------------------------------------------------------------------");
-					TaskBasedTaskStatus.getInstance().reset();
+					KernelBasedApplicationStatus.getInstance().reset();
 				}//End of orchestrators loop
 			}//End of scenarios loop
 		}//End of mobile devices loop

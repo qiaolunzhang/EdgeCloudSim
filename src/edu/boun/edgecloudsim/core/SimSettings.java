@@ -30,7 +30,7 @@ import org.w3c.dom.NodeList;
 import com.sun.javafx.image.impl.IntArgb;
 
 import edu.boun.edgecloudsim.utils.SimLogger;
-import edu.boun.edgecloudsim.utils.TaskBasedApplication;
+import edu.boun.edgecloudsim.utils.KernelBasedApplicationSettings;
 
 public class SimSettings {
 	private static SimSettings instance = null;
@@ -107,17 +107,19 @@ public class SimSettings {
     // [10] vm utilization on cloud (%)
     // [11] vm utilization on mobile (%)
     // [12] delay sensitivity [0-1]
-    private double[][] taskLookUpTable = null;
-    private double[][] subtaskLookUpTable = null;
+    private double[][] applicationLookUpTable = null;
+    private double[][] kernelInKernelBasedAPPLookUpTable = null;
     
-    private String[] taskNames = null;
-    private String[] subtaskNames = null;
+    private String[] applicationNames = null;
+    // the kernel names of kernel in kernel-based application
+    private String[] kernelNames = null;
     
-    // The length is the same as the number of tasks(tasks are divided to subtasks)
-    // -1 represents not subtask, if the task is subtask, store index in dependencyLookUpTable
-    private int[] taskTypeIndex = null;
+    // The length is the same as the number of applications(applications are divided to kernels)
+    // -1 represents not kernel-based application, if the task is kernel-based application
+    // otherwise, the value can be used to lookup the kernel-based application settings
+    private int[] applicationTypeIndex = null;
     
-    private TaskBasedApplication[] dependencyLookUpTable = null;
+    private KernelBasedApplicationSettings[] kbAPPSettingsLookUpTable = null;
 
 	private SimSettings() {
 		NUM_OF_PLACE_TYPES = 0;
@@ -491,24 +493,24 @@ public class SimSettings {
 	 * [10] vm utilization on cloud (%)
 	 * [11] vm utilization on mobile (%)
 	 */ 
-	public double[][] getTaskLookUpTable()
+	public double[][] getApplicationLookUpTable()
 	{
-		return taskLookUpTable;
+		return applicationLookUpTable;
 	}
 
-	public double[][] getSubtaskLookUpTable()
+	public double[][] getKernelLookUpTable()
 	{
-		return subtaskLookUpTable;
+		return kernelInKernelBasedAPPLookUpTable;
 	}
 	
-	public String getTaskName(int taskType)
+	public String getApplicationName(int applicationType)
 	{
-		return taskNames[taskType];
+		return applicationNames[applicationType];
 	}
 	
-	public boolean isTaskBasedApplication(int taskType)
+	public boolean isKernalBasedApplication(int applicationType)
 	{
-		if (taskTypeIndex[taskType] >= 0) {
+		if (applicationTypeIndex[applicationType] >= 0) {
 			return true;
 		}
 		else {
@@ -516,31 +518,31 @@ public class SimSettings {
 		}
 	}
 	
-	public int getsubTaskNum(int taskType) {
-		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
-		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
-		return taskBasedApplication.getSubTaskNum();
+	public int getKernelNum(int applicationType) {
+		int kbbAppSettingsIndex = applicationTypeIndex[applicationType];
+		KernelBasedApplicationSettings kernelBasedApplicationSettings = kbAPPSettingsLookUpTable[kbbAppSettingsIndex];
+		return kernelBasedApplicationSettings.getSubTaskNum();
 	}
 	
-	public int[][] getsubTaskDependency(int taskType) {
-		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
-		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
-		int[][] dependency = taskBasedApplication.getDependency();
+	public int[][] getKernelBasedApplicationDependency(int applicationType) {
+		int dependencyLookUpTableIndex = applicationTypeIndex[applicationType];
+		KernelBasedApplicationSettings kbApplicationSettings = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];
+		int[][] dependency = kbApplicationSettings.getDependency();
 		return dependency;
 	}
 	
 	public double[] getsubTaskParameter(int taskType, int index) {
-		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
-		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
-		int subTaskIndex = taskBasedApplication.getSubTaskIndex(index);
-		return subtaskLookUpTable[subTaskIndex];
+		int dependencyLookUpTableIndex = applicationTypeIndex[taskType];
+		KernelBasedApplicationSettings taskBasedApplication = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];
+		int subTaskIndex = taskBasedApplication.getKernelIndex(index);
+		return kernelInKernelBasedAPPLookUpTable[subTaskIndex];
 	}
 
-	public int getsubTaskIndex(int taskType, int index) {
-		int dependencyLookUpTableIndex = taskTypeIndex[taskType];
-		TaskBasedApplication taskBasedApplication = dependencyLookUpTable[dependencyLookUpTableIndex];
-		int subTaskIndex = taskBasedApplication.getSubTaskIndex(index);
-		return subTaskIndex;
+	public int getKernelIndex(int applicationType, int index) {
+		int dependencyLookUpTableIndex = applicationTypeIndex[applicationType];
+		KernelBasedApplicationSettings kbbAppSettings = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];
+		int kernelIndex = kbbAppSettings.getKernelIndex(index);
+		return kernelIndex;
 	}
 	
 	
@@ -579,7 +581,7 @@ public class SimSettings {
 		return flag;
 	}
 	
-	private void addTask(Element appElement, int taskIndex) {
+	private void addApplicationInfo(Element appElement, int taskIndex) {
 		isAttribtuePresent(appElement, "name");
 		isElementPresent(appElement, "usage_percentage");
 		isElementPresent(appElement, "prob_cloud_selection");
@@ -595,7 +597,7 @@ public class SimSettings {
 		isElementPresent(appElement, "vm_utilization_on_mobile");
 
 		String taskName = appElement.getAttribute("name");
-		taskNames[taskIndex] = taskName;
+		applicationNames[taskIndex] = taskName;
 				
 		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
 		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
@@ -610,21 +612,21 @@ public class SimSettings {
 		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
 		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
 				
-		taskLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
-		taskLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
-		taskLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
-		taskLookUpTable[taskIndex][3] = active_period; //active period (sec)
-		taskLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
-		taskLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
-		taskLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
-		taskLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
-		taskLookUpTable[taskIndex][8] = required_core; //required # of core
-		taskLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
-		taskLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
-		taskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+		applicationLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
+		applicationLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
+		applicationLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
+		applicationLookUpTable[taskIndex][3] = active_period; //active period (sec)
+		applicationLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
+		applicationLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
+		applicationLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
+		applicationLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
+		applicationLookUpTable[taskIndex][8] = required_core; //required # of core
+		applicationLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
+		applicationLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
+		applicationLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
 	}
 	
-	private void addSubTask(Element appElement, int taskIndex) {
+	private void addKernelInfo(Element appElement, int kernelIndex) {
 		isAttribtuePresent(appElement, "name");
 		isElementPresent(appElement, "usage_percentage");
 		isElementPresent(appElement, "prob_cloud_selection");
@@ -640,7 +642,7 @@ public class SimSettings {
 		isElementPresent(appElement, "vm_utilization_on_mobile");
 
 		String taskName = appElement.getAttribute("name");
-		subtaskNames[taskIndex] = taskName;
+		kernelNames[kernelIndex] = taskName;
 				
 		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
 		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
@@ -655,18 +657,18 @@ public class SimSettings {
 		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
 		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
 				
-		subtaskLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
-		subtaskLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
-		subtaskLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
-		subtaskLookUpTable[taskIndex][3] = active_period; //active period (sec)
-		subtaskLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
-		subtaskLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
-		subtaskLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
-		subtaskLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
-		subtaskLookUpTable[taskIndex][8] = required_core; //required # of core
-		subtaskLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
-		subtaskLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
-		subtaskLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][0] = usage_percentage; //usage percentage [0-100]
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][2] = poisson_interarrival; //poisson mean (sec)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][3] = active_period; //active period (sec)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][4] = idle_period; //idle period (sec)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][5] = data_upload; //avg data upload (KB)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][6] = data_download; //avg data download (KB)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][7] = task_length; //avg task length (MI)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][8] = required_core; //required # of core
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
 	}
 	
 	/**
@@ -683,8 +685,8 @@ public class SimSettings {
 				Node dependencyNode = dependencyList.item(i);
 				//Element dependencyElement = (Element) dependencyNode;
 				int dependencyIndex = Integer.parseInt(dependencyNode.getTextContent());
-				int dependencyLookUpTableIndex = taskTypeIndex[taskIndex];
-				TaskBasedApplication taskBasedTask = dependencyLookUpTable[dependencyLookUpTableIndex];
+				int dependencyLookUpTableIndex = applicationTypeIndex[taskIndex];
+				KernelBasedApplicationSettings taskBasedTask = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];
 				taskBasedTask.addDependency(subTaskIndex, dependencyIndex);
 			}
 		}
@@ -716,13 +718,13 @@ public class SimSettings {
 				}
 			}
 
-			taskLookUpTable = new double[appList.getLength()][13];
-			subtaskLookUpTable = new double[subtaskCount][13];
-			taskNames = new String[appList.getLength()];
-			subtaskNames = new String[subtaskCount];
-			taskTypeIndex = new int[appList.getLength()]; 
+			applicationLookUpTable = new double[appList.getLength()][13];
+			kernelInKernelBasedAPPLookUpTable = new double[subtaskCount][13];
+			applicationNames = new String[appList.getLength()];
+			kernelNames = new String[subtaskCount];
+			applicationTypeIndex = new int[appList.getLength()]; 
 
-			dependencyLookUpTable = new TaskBasedApplication[taskBasedAppCount]; 
+			kbAPPSettingsLookUpTable = new KernelBasedApplicationSettings[taskBasedAppCount]; 
 
 
 			int taskIndex = 0;
@@ -732,22 +734,22 @@ public class SimSettings {
 				Node appNode = appList.item(i);
 	
 				Element appElement = (Element) appNode;
-				addTask(appElement, taskIndex);
+				addApplicationInfo(appElement, taskIndex);
 
 				if (isTaskBasedApplication(appElement, "sub_applications")) {
 					// update subTaskLookUpTable
-					taskTypeIndex[taskIndex] = dependencyLookUpTableIndex; 
+					applicationTypeIndex[taskIndex] = dependencyLookUpTableIndex; 
 					// get the sub_applications Element
 					NodeList subappList = appElement.getElementsByTagName("sub_application");
 					int subapp_cnt = subappList.getLength();
 
-					dependencyLookUpTable[dependencyLookUpTableIndex] = new TaskBasedApplication(subapp_cnt, subtaskIndex);
+					kbAPPSettingsLookUpTable[dependencyLookUpTableIndex] = new KernelBasedApplicationSettings(subapp_cnt, subtaskIndex);
 					
 					// add task
 					for (int j=0; j<subappList.getLength(); j++) {
 						Node subAppNode = subappList.item(j);
 						Element subAppelement = (Element) subAppNode;
-						addSubTask(subAppelement, subtaskIndex);
+						addKernelInfo(subAppelement, subtaskIndex);
 						addDependency(subAppelement, taskIndex, j);
 						subtaskIndex++;
 					}
@@ -755,7 +757,7 @@ public class SimSettings {
 					dependencyLookUpTableIndex++;
 				}
 				else {
-					taskTypeIndex[taskIndex] = -1; 
+					applicationTypeIndex[taskIndex] = -1; 
 				}
 
 		    	taskIndex++;

@@ -27,11 +27,11 @@ import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.core.SimSettings.NETWORK_DELAY_TYPES;
 import edu.boun.edgecloudsim.edge_client.CpuUtilizationModel_Custom;
 import edu.boun.edgecloudsim.edge_client.MobileDeviceManager;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.edge_server.EdgeHost;
 import edu.boun.edgecloudsim.edge_server.EdgeVM;
 import edu.boun.edgecloudsim.network.NetworkModel;
-import edu.boun.edgecloudsim.utils.TaskProperty;
+import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.Location;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
@@ -88,7 +88,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 	 */
 	protected void processCloudletReturn(SimEvent ev) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
-		Task task = (Task) ev.getData();
+		Kernel task = (Kernel) ev.getData();
 		
 		SimLogger.getInstance().taskExecuted(task.getCloudletId());
 
@@ -176,21 +176,21 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 			}
 			case REQUEST_RECEIVED_BY_CLOUD:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
 				submitTaskToVm(task, SimSettings.VM_TYPES.CLOUD_VM);
 				break;
 			}
 			case REQUEST_RECEIVED_BY_EDGE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				submitTaskToVm(task, SimSettings.VM_TYPES.EDGE_VM);
 				break;
 			}
 			case REQUEST_RECEIVED_BY_REMOTE_EDGE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID+1);
 				submitTaskToVm(task, SimSettings.VM_TYPES.EDGE_VM);
 				
@@ -198,7 +198,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 			}
 			case REQUEST_RECEIVED_BY_EDGE_DEVICE_TO_RELAY_NEIGHBOR:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				
 				double manDelay =  networkModel.getUploadDelay(SimSettings.GENERIC_EDGE_DEVICE_ID, SimSettings.GENERIC_EDGE_DEVICE_ID, task);
@@ -221,7 +221,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 			}
 			case RESPONSE_RECEIVED_BY_EDGE_DEVICE_TO_RELAY_MOBILE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID+1);
 				
 				//SimLogger.printLine(CloudSim.clock() + ": " + getName() + ": task #" + task.getCloudletId() + " received from edge");
@@ -250,7 +250,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 			}
 			case RESPONSE_RECEIVED_BY_MOBILE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				
 				if(task.getAssociatedDatacenterId() == SimSettings.CLOUD_DATACENTER_ID)
 					networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
@@ -267,7 +267,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 
-	public void submitTask(TaskProperty edgeTask) {
+	public void submitKernel(KernelProperty edgeTask) {
 		int vmType=0;
 		int nextEvent=0;
 		int nextDeviceForNetworkModel;
@@ -277,7 +277,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		
 		//create a task
-		Task task = createTask(edgeTask);
+		Kernel task = createTask(edgeTask);
 		
 		Location currentLocation = SimManager.getInstance().getMobilityModel().
 				getLocation(task.getMobileDeviceId(), CloudSim.clock());
@@ -355,7 +355,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 	
-	private void submitTaskToVm(Task task, SimSettings.VM_TYPES vmType) {
+	private void submitTaskToVm(Kernel task, SimSettings.VM_TYPES vmType) {
 		//SimLogger.printLine(CloudSim.clock() + ": Cloudlet#" + task.getCloudletId() + " is submitted to VM#" + task.getVmId());
 		schedule(getVmsToDatacentersMap().get(task.getVmId()), 0, CloudSimTags.CLOUDLET_SUBMIT, task);
 
@@ -366,11 +366,11 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 				vmType.ordinal());
 	}
 	
-	private Task createTask(TaskProperty edgeTask){
+	private Kernel createTask(KernelProperty edgeTask){
 		UtilizationModel utilizationModel = new UtilizationModelFull(); /*UtilizationModelStochastic*/
 		UtilizationModel utilizationModelCPU = getCpuUtilizationModel();
 
-		Task task = new Task(edgeTask.getMobileDeviceId(), ++taskIdCounter,
+		Kernel task = new Kernel(edgeTask.getMobileDeviceId(), ++taskIdCounter,
 				edgeTask.getLength(), edgeTask.getPesNumber(),
 				edgeTask.getInputFileSize(), edgeTask.getOutputFileSize(),
 				utilizationModelCPU, utilizationModel, utilizationModel);

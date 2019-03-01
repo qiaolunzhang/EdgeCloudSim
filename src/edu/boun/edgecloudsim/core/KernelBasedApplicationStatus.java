@@ -2,97 +2,99 @@ package edu.boun.edgecloudsim.core;
 
 import java.util.*;
 
-import edu.boun.edgecloudsim.utils.TaskBasedTask;
+import edu.boun.edgecloudsim.utils.KernelBasedApplication;
 
-public class TaskBasedTaskStatus {
+public class KernelBasedApplicationStatus {
 	
 
-	private static TaskBasedTaskStatus instance = null;
+	private static KernelBasedApplicationStatus instance = null;
 	private int simManagerId;
-	private int numTaskBasedTask;
-	private Map<Integer, TaskBasedTask> taskBasedTaskMap;
+	private int numKernelBasedApplication;
+	private Map<Integer, KernelBasedApplication> kernelBasedApplicationMap;
+	// map kernelBasedApplication id to the key in kernelBasedApplicationMap
 	private Map<Integer, Integer> mKeyMap;
 	
-	private TaskBasedTaskStatus() {
-		taskBasedTaskMap = new HashMap<Integer, TaskBasedTask>();
+	private KernelBasedApplicationStatus() {
+		kernelBasedApplicationMap = new HashMap<Integer, KernelBasedApplication>();
 		mKeyMap = new HashMap<Integer, Integer>();
 	}
 	
-	public static TaskBasedTaskStatus getInstance() {
+	public static KernelBasedApplicationStatus getInstance() {
 		if (instance == null) {
-			instance = new TaskBasedTaskStatus();
+			instance = new KernelBasedApplicationStatus();
 		}
 		return instance;
 	}
 	
-	public void addTaskBasedTask(int num_subtask, int taskBasedTaskId) {
-		taskBasedTaskMap.put(taskBasedTaskId, new TaskBasedTask(num_subtask, taskBasedTaskId));
+	public void addKernelBasedApplication(int numKernel, int kernelBasedApplicationId) {
+		kernelBasedApplicationMap.put(kernelBasedApplicationId, new KernelBasedApplication(numKernel, kernelBasedApplicationId));
+		numKernelBasedApplication++;
 	}
 	
 	/**
 	 * @param id_subTask_list: the list of taskPropertyId
 	 * @param taskBasedTaskId: the id of taskBasedTask
 	 */
-	public void addSubTaskIdList(int[] id_subTask_list, int taskBasedTaskId) {
-		for (int i=0; i<id_subTask_list.length; i++) {
-			mKeyMap.put(id_subTask_list[i], taskBasedTaskId);
+	public void addKernelIdList(int[] kernelIdList, int kernelBasedApplicationId) {
+		for (int i=0; i<kernelIdList.length; i++) {
+			mKeyMap.put(kernelIdList[i], kernelBasedApplicationId);
 		}
-		taskBasedTaskMap.get(taskBasedTaskId).addSubTaskIdList(id_subTask_list);
+		kernelBasedApplicationMap.get(kernelBasedApplicationId).addKernelIdList(kernelIdList);
 	}
 	
 	public void addDependency(int id, int id_dependency, int taskBasedTaskId) {
-		taskBasedTaskMap.get(taskBasedTaskId).addDependency(id, id_dependency);
+		kernelBasedApplicationMap.get(taskBasedTaskId).addDependency(id, id_dependency);
 	}
 	
 	public boolean checkReadySubmit(int taskPropertyId) {
 		//taskBasedTaskMap.get(task)
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		boolean result = taskBasedTaskMap.get(taskBasedTaskId).checkReadySubmit(taskPropertyId);
+		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkReadySubmit(taskPropertyId);
 		return result;
 	}
 	
 	public List<Integer> getTaskSubmit(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		List<Integer> newTaskList = taskBasedTaskMap.get(taskBasedTaskId).getTaskToSubmit(taskPropertyId);
+		List<Integer> newTaskList = kernelBasedApplicationMap.get(taskBasedTaskId).getTaskToSubmit(taskPropertyId);
 		return newTaskList;
 	}
 	
 	public void setTaskSubmit(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		taskBasedTaskMap.get(taskBasedTaskId).setTaskSubmit(taskPropertyId);
+		kernelBasedApplicationMap.get(taskBasedTaskId).setTaskSubmit(taskPropertyId);
 	}
 	
 	public boolean checkTaskBasedTaskEnd(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		boolean result = taskBasedTaskMap.get(taskBasedTaskId).checkTaskBasedTaskEnd();
+		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkTaskBasedTaskEnd();
 		return result;
 	}
 	
 	public void setTaskBasedTaskFinalStatus(int taskPropertyId, int status) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		taskBasedTaskMap.get(taskBasedTaskId).setTaskFinalStatus(status);
+		kernelBasedApplicationMap.get(taskBasedTaskId).setTaskFinalStatus(status);
 	}
 	
 	public int getTaskBasedTaskFinalStatus(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		int status = taskBasedTaskMap.get(taskBasedTaskId).getTaskFinalStatus();
+		int status = kernelBasedApplicationMap.get(taskBasedTaskId).getTaskFinalStatus();
 		return status;
 	}
 	
 	public void setFinalStatusLogged(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		taskBasedTaskMap.get(taskBasedTaskId).setFinalStatusLogged();
+		kernelBasedApplicationMap.get(taskBasedTaskId).setFinalStatusLogged();
 	}
 	
 	public boolean checkFinalStatusLogged(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		return taskBasedTaskMap.get(taskBasedTaskId).checkStatusUnLogged();
+		return kernelBasedApplicationMap.get(taskBasedTaskId).checkStatusUnLogged();
 	}
 	
 
 	public void checkAllSubmittedAndSetStatus() {
-		for (Integer key: taskBasedTaskMap.keySet()) {
-			taskBasedTaskMap.get(key).checkAllSubmittedAndSetStatus();
+		for (Integer key: kernelBasedApplicationMap.keySet()) {
+			kernelBasedApplicationMap.get(key).checkAllSubmittedAndSetStatus();
 		}
 	}
 
@@ -126,8 +128,8 @@ public class TaskBasedTaskStatus {
 		int success = 0;
 		int unfinished = 0;
 		int fail = 0;
-		for (Integer key: taskBasedTaskMap.keySet()) {
-			int status = taskBasedTaskMap.get(key).getTaskFinalStatus();
+		for (Integer key: kernelBasedApplicationMap.keySet()) {
+			int status = kernelBasedApplicationMap.get(key).getTaskFinalStatus();
 			if (status == 0) {
 				success++;
 			} else if (status == 1) {

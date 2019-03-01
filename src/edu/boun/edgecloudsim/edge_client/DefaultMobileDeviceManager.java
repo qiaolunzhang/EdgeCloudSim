@@ -27,9 +27,9 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.core.SimSettings.NETWORK_DELAY_TYPES;
-import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
+import edu.boun.edgecloudsim.core.KernelBasedApplicationStatus;
 import edu.boun.edgecloudsim.network.NetworkModel;
-import edu.boun.edgecloudsim.utils.TaskProperty;
+import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.Location;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
@@ -77,16 +77,16 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 	 */
 	protected void processCloudletReturn(SimEvent ev) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
-		Task task = (Task) ev.getData();
+		Kernel task = (Kernel) ev.getData();
 		//System.out.println(task.getTaskPropertyId());
 		// schedule new task
 		int taskPropertyId = task.getTaskPropertyId();
 		//System.out.println(taskPropertyId);
-		if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
-			int simManagerId = TaskBasedTaskStatus.getInstance().getSimManagerId();
+		if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
+			int simManagerId = KernelBasedApplicationStatus.getInstance().getSimManagerId();
 			// in the meanwhile set the task as finished 
 			// we can only set the task submitted here
-			List<Integer> subTask_ready = TaskBasedTaskStatus.getInstance().getTaskSubmit(taskPropertyId);
+			List<Integer> subTask_ready = KernelBasedApplicationStatus.getInstance().getTaskSubmit(taskPropertyId);
 			for (int i=0; i<subTask_ready.size(); i++) {
 				scheduleNow(simManagerId, 5, subTask_ready.get(i));
 				//System.out.println("Submitting a sub task: " + subTask_ready.get(i));
@@ -94,7 +94,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			//scheduleNow(simManagerId, 5, subTask_ready);
 			
 			// check if the task-based task has ended
-			boolean ended_flag = TaskBasedTaskStatus.getInstance().checkTaskBasedTaskEnd(taskPropertyId);
+			boolean ended_flag = KernelBasedApplicationStatus.getInstance().checkTaskBasedTaskEnd(taskPropertyId);
 			if (ended_flag) {
 				//System.out.println("a new task-based task has ended");
 			}
@@ -160,7 +160,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		switch (ev.getTag()) {
 			case REQUEST_RECEIVED_BY_CLOUD:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
 
@@ -170,7 +170,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			}
 			case REQUEST_RECIVED_BY_EDGE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				
 				networkModel.uploadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				
@@ -180,7 +180,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			}
 			case RESPONSE_RECEIVED_BY_MOBILE_DEVICE:
 			{
-				Task task = (Task) ev.getData();
+				Kernel task = (Kernel) ev.getData();
 				
 				if(task.getAssociatedDatacenterId() == SimSettings.CLOUD_DATACENTER_ID)
 					networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
@@ -197,11 +197,11 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 
-	public void submitTask(TaskProperty edgeTask) {
+	public void submitKernel(KernelProperty edgeTask) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		
 		//create a task
-		Task task = createTask(edgeTask);
+		Kernel task = createTask(edgeTask);
 		
 		Location currentLocation = SimManager.getInstance().getMobilityModel().
 				getLocation(task.getMobileDeviceId(),CloudSim.clock());
@@ -261,7 +261,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 	
-	private void submitTaskToVm(Task task, double delay, int datacenterId) {
+	private void submitTaskToVm(Kernel task, double delay, int datacenterId) {
 		//select a VM
 		Vm selectedVM = SimManager.getInstance().getEdgeOrchestrator().getVmToOffload(task, datacenterId);
 		
@@ -302,11 +302,11 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 	
-	private Task createTask(TaskProperty edgeTask){
+	private Kernel createTask(KernelProperty edgeTask){
 		UtilizationModel utilizationModel = new UtilizationModelFull(); /*UtilizationModelStochastic*/
 		UtilizationModel utilizationModelCPU = getCpuUtilizationModel();
 
-		Task task = new Task(edgeTask.getMobileDeviceId(), ++taskIdCounter,
+		Kernel task = new Kernel(edgeTask.getMobileDeviceId(), ++taskIdCounter,
 				edgeTask.getLength(), edgeTask.getPesNumber(),
 				edgeTask.getInputFileSize(), edgeTask.getOutputFileSize(),
 				utilizationModelCPU, utilizationModel, utilizationModel);

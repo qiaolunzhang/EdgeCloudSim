@@ -16,7 +16,7 @@ import org.cloudbus.cloudsim.UtilizationModel;
 
 import edu.boun.edgecloudsim.utils.Location;
 
-public class Task extends Cloudlet {
+public class Kernel extends Cloudlet {
 	private Location submittedLocation;
 	private int type;
 	private int mobileDeviceId;
@@ -25,7 +25,7 @@ public class Task extends Cloudlet {
 	private int datacenterId;
 	private int taskPropertyId;
 
-	public Task(int _mobileDeviceId, int cloudletId, long cloudletLength, int pesNumber,
+	public Kernel(int _mobileDeviceId, int cloudletId, long cloudletLength, int pesNumber,
 			long cloudletFileSize, long cloudletOutputSize,
 			UtilizationModel utilizationModelCpu,
 			UtilizationModel utilizationModelRam,

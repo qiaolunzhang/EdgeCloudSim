@@ -18,14 +18,14 @@ import java.util.*;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
-import edu.boun.edgecloudsim.utils.TaskProperty;
+import edu.boun.edgecloudsim.core.KernelBasedApplicationStatus;
+import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.SimUtils;
-import edu.boun.edgecloudsim.utils.TaskBasedTask;
+import edu.boun.edgecloudsim.utils.KernelBasedApplication;
 
 public class IdleActiveLoadGenerator extends LoadGeneratorModel{
-	private Map<Integer, Integer>taskProperty2taskListIndex;
+	private Map<Integer, Integer>kernelId2KernelPropertyListIndex;
 	int taskTypeOfDevices[];
 	public IdleActiveLoadGenerator(int _numberOfMobileDevices, double _simulationTime, String _simScenario) {
 		super(_numberOfMobileDevices, _simulationTime, _simScenario);
@@ -33,32 +33,32 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 
 	@Override
 	public void initializeModel() {
-		taskList = new ArrayList<TaskProperty>();
-		subtaskList = new ArrayList<TaskProperty>();
-		taskBasedTaskList = new ArrayList<TaskBasedTask>();
-		taskProperty2taskListIndex = new HashMap<Integer, Integer>();
+		kernelPropertyList = new ArrayList<KernelProperty>();
+		kernelPropertyInKernelBasedAppList = new ArrayList<KernelProperty>();
+		kernelBasedApplicationList = new ArrayList<KernelBasedApplication>();
+		kernelId2KernelPropertyListIndex = new HashMap<Integer, Integer>();
 		
 		//exponential number generator for file input size, file output size and task length
-		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getTaskLookUpTable().length][3];
+		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getApplicationLookUpTable().length][3];
 		//exponential number generator for sub-task
-		ExponentialDistribution[][] subtaskExpRngList = new ExponentialDistribution[SimSettings.getInstance().getSubtaskLookUpTable().length][3];
+		ExponentialDistribution[][] subtaskExpRngList = new ExponentialDistribution[SimSettings.getInstance().getKernelLookUpTable().length][3];
 		//create random number generator for each place
-		for(int i=0; i<SimSettings.getInstance().getTaskLookUpTable().length; i++) {
-			if(SimSettings.getInstance().getTaskLookUpTable()[i][0] ==0)
+		for(int i=0; i<SimSettings.getInstance().getApplicationLookUpTable().length; i++) {
+			if(SimSettings.getInstance().getApplicationLookUpTable()[i][0] ==0)
 				continue;
 			
-			expRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][5]);
-			expRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][6]);
-			expRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getTaskLookUpTable()[i][7]);
+			expRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getApplicationLookUpTable()[i][5]);
+			expRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getApplicationLookUpTable()[i][6]);
+			expRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getApplicationLookUpTable()[i][7]);
 		}
 		// create random number generator for each place for subtask
-		for(int i=0; i<SimSettings.getInstance().getSubtaskLookUpTable().length; i++) {
-			if(SimSettings.getInstance().getSubtaskLookUpTable()[i][0]==0)
+		for(int i=0; i<SimSettings.getInstance().getKernelLookUpTable().length; i++) {
+			if(SimSettings.getInstance().getKernelLookUpTable()[i][0]==0)
 				continue;
 			
-			subtaskExpRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][5]);
-			subtaskExpRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][6]);
-			subtaskExpRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getSubtaskLookUpTable()[i][7]);
+			subtaskExpRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][5]);
+			subtaskExpRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][6]);
+			subtaskExpRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][7]);
 		}
 		
 		//Each mobile device utilizes an app type (task type)
@@ -69,8 +69,8 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 			int randomTaskType = -1;
 			double taskTypeSelector = SimUtils.getRandomDoubleNumber(0,100);
 			double taskTypePercentage = 0;
-			for (int j=0; j<SimSettings.getInstance().getTaskLookUpTable().length; j++) {
-				taskTypePercentage += SimSettings.getInstance().getTaskLookUpTable()[j][0];
+			for (int j=0; j<SimSettings.getInstance().getApplicationLookUpTable().length; j++) {
+				taskTypePercentage += SimSettings.getInstance().getApplicationLookUpTable()[j][0];
 				if(taskTypeSelector <= taskTypePercentage){
 					randomTaskType = j;
 					break;
@@ -83,9 +83,9 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 			
 			taskTypeOfDevices[i] = randomTaskType;
 			
-			double poissonMean = SimSettings.getInstance().getTaskLookUpTable()[randomTaskType][2];
-			double activePeriod = SimSettings.getInstance().getTaskLookUpTable()[randomTaskType][3];
-			double idlePeriod = SimSettings.getInstance().getTaskLookUpTable()[randomTaskType][4];
+			double poissonMean = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][2];
+			double activePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][3];
+			double idlePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][4];
 			double activePeriodStartTime = SimUtils.getRandomDoubleNumber(
 					SimSettings.CLIENT_ACTIVITY_START_TIME, 
 					SimSettings.CLIENT_ACTIVITY_START_TIME + activePeriod);  //active period starts shortly after the simulation started (e.g. 10 seconds)
@@ -108,43 +108,43 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 					continue;
 				}
 				
-				if (SimSettings.getInstance().isTaskBasedApplication(randomTaskType)) {
+				if (SimSettings.getInstance().isKernalBasedApplication(randomTaskType)) {
 					// create an object of TaskBasedTask
-					int subtaskNum = SimSettings.getInstance().getsubTaskNum(randomTaskType);
+					int subtaskNum = SimSettings.getInstance().getKernelNum(randomTaskType);
 
-					int[][] dependency_task = SimSettings.getInstance().getsubTaskDependency(randomTaskType);
+					int[][] dependency_task = SimSettings.getInstance().getKernelBasedApplicationDependency(randomTaskType);
 					
-					TaskBasedTaskStatus.getInstance().addTaskBasedTask(subtaskNum, taskBasedTaskId);
+					KernelBasedApplicationStatus.getInstance().addKernelBasedApplication(subtaskNum, taskBasedTaskId);
 					
 					int[] id_subtask_list = new int[subtaskNum];
 					
 					for (int subTaskIndex=0; subTaskIndex<subtaskNum; subTaskIndex++) {
 						// map the subtask to TaskBasedTask
-						int subRandomTaskType = SimSettings.getInstance().getsubTaskIndex(randomTaskType, subTaskIndex);
-						TaskProperty taskProperty = new TaskProperty(i, subRandomTaskType, randomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
+						int subRandomTaskType = SimSettings.getInstance().getKernelIndex(randomTaskType, subTaskIndex);
+						KernelProperty taskProperty = new KernelProperty(i, subRandomTaskType, randomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
 						//int taskId = taskProperty.getCloud
-						int  taskListIndex = taskList.size();
-						taskProperty2taskListIndex.put(taskPropertyId, taskListIndex);
-						taskList.add(taskProperty);
+						int  taskListIndex = kernelPropertyList.size();
+						kernelId2KernelPropertyListIndex.put(taskPropertyId, taskListIndex);
+						kernelPropertyList.add(taskProperty);
 						id_subtask_list[subTaskIndex] = taskPropertyId;
 						taskPropertyId++;
 					}
 					
 					// add the taskPropertyId list
-					TaskBasedTaskStatus.getInstance().addSubTaskIdList(id_subtask_list, taskBasedTaskId);
+					KernelBasedApplicationStatus.getInstance().addKernelIdList(id_subtask_list, taskBasedTaskId);
 					// add the dependency
 					for (int id=0; id<dependency_task.length; id++) {
 						for (int id_dependency=0; id_dependency < dependency_task[id].length; id_dependency++)
 							if (dependency_task[id][id_dependency] ==  1) {
 								// pass id_subtask_list[id] because what we pass is the property_id, not the index
-								TaskBasedTaskStatus.getInstance().addDependency(id_subtask_list[id], id_subtask_list[id_dependency], taskBasedTaskId);
+								KernelBasedApplicationStatus.getInstance().addDependency(id_subtask_list[id], id_subtask_list[id_dependency], taskBasedTaskId);
 							}
 					}
 					taskBasedTaskId++;
 					
 				}
 				else {
-					taskList.add(new TaskProperty(i,randomTaskType, virtualTime, expRngList, taskPropertyId));
+					kernelPropertyList.add(new KernelProperty(i,randomTaskType, virtualTime, expRngList, taskPropertyId));
 					taskPropertyId++;
 				}
 			}
@@ -157,8 +157,8 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 		return taskTypeOfDevices[deviceId];
 	}
 	
-	public int getTaskListIndex(int taskPropertyId) {
-		return taskProperty2taskListIndex.get(taskPropertyId);
+	public int getKernelPropertyIndex(int kernelId) {
+		return kernelId2KernelPropertyListIndex.get(kernelId);
 	}
 
 }

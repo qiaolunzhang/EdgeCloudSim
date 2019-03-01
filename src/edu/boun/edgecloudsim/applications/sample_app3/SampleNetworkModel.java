@@ -17,7 +17,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.network.NetworkModel;
 import edu.boun.edgecloudsim.utils.Location;
 import edu.boun.edgecloudsim.utils.SimLogger;
@@ -142,7 +142,7 @@ public class SampleNetworkModel extends NetworkModel {
     * source device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		double delay = 0;
 
 		//mobile device to edge device (wifi access point)
@@ -160,7 +160,7 @@ public class SampleNetworkModel extends NetworkModel {
     * destination device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		double delay = 0;
 		
 		Location accessPointLocation = SimManager.getInstance().getMobilityModel().getLocation(destDeviceId,CloudSim.clock());

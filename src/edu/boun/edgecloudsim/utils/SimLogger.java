@@ -26,7 +26,7 @@ import java.util.stream.IntStream;
 
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.core.TaskBasedTaskStatus;
+import edu.boun.edgecloudsim.core.KernelBasedApplicationStatus;
 import edu.boun.edgecloudsim.core.SimSettings.NETWORK_DELAY_TYPES;
 import edu.boun.edgecloudsim.utils.SimLogger.NETWORK_ERRORS;
 
@@ -150,7 +150,7 @@ public class SimLogger {
 	}
 
 	public void simStopped() throws IOException {
-		int numOfAppTypes = SimSettings.getInstance().getTaskLookUpTable().length;
+		int numOfAppTypes = SimSettings.getInstance().getApplicationLookUpTable().length;
 		int numTaskBasedTask = 0;
 
 		File successFile = null, failFile = null, vmLoadFile = null, locationFile = null;
@@ -264,10 +264,10 @@ public class SimLogger {
 				if (i < numOfAppTypes) {
 					// if related app is not used in this simulation, just
 					// discard it
-					if (SimSettings.getInstance().getTaskLookUpTable()[i][0] == 0)
+					if (SimSettings.getInstance().getApplicationLookUpTable()[i][0] == 0)
 						continue;
 
-					fileName = SimSettings.getInstance().getTaskName(i) + "_GENERIC.log";
+					fileName = SimSettings.getInstance().getApplicationName(i) + "_GENERIC.log";
 				}
 
 				genericFiles[i] = new File(outputFolder, filePrefix + "_" + fileName);
@@ -285,7 +285,7 @@ public class SimLogger {
 			appendToFile(locationBW, "#auto generated file!");
 		}
 
-		TaskBasedTaskStatus.getInstance().checkAllSubmittedAndSetStatus();
+		KernelBasedApplicationStatus.getInstance().checkAllSubmittedAndSetStatus();
 
 		// extract the result of each task and write it to the file if required
 		for (Map.Entry<Integer, LogItem> entry : taskMap.entrySet()) {
@@ -298,10 +298,10 @@ public class SimLogger {
 
 			int taskPropertyId = value.getTaskPropertyid();
 
-			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+			if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
 				//System.out.println("It's a sub-task");
 				isSubTask = true;
-				int status = TaskBasedTaskStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
+				int status = KernelBasedApplicationStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
 				if (status == 2) {
 					continue;
 				}
@@ -314,10 +314,10 @@ public class SimLogger {
 						value.getStatus() == SimLogger.TASK_STATUS.PROCESSING ||
 						value.getStatus() == SimLogger.TASK_STATUS.DOWNLOADING)
 				{
-					TaskBasedTaskStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 1);
+					KernelBasedApplicationStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 1);
 				}
 				else {
-					TaskBasedTaskStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 2);
+					KernelBasedApplicationStatus.getInstance().setTaskBasedTaskFinalStatus(taskPropertyId, 2);
 				}
 			} 
 
@@ -436,22 +436,22 @@ public class SimLogger {
 
 			int taskPropertyId = value.getTaskPropertyid();
 
-			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+			if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
 					//System.out.println("It's a sub-task");
-				int status = TaskBasedTaskStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
+				int status = KernelBasedApplicationStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
 				
-				if (TaskBasedTaskStatus.getInstance().checkFinalStatusLogged(taskPropertyId)) {
+				if (KernelBasedApplicationStatus.getInstance().checkFinalStatusLogged(taskPropertyId)) {
 					numTaskBasedTask++;
 					if (status == 0) {
 						completedTask[value.getTaskType()]++;
-						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+						KernelBasedApplicationStatus.getInstance().setFinalStatusLogged(taskPropertyId);
 					}
 					else if (status == 1) {
 						uncompletedTask[value.getTaskType()]++;
-						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+						KernelBasedApplicationStatus.getInstance().setFinalStatusLogged(taskPropertyId);
 					} else if (status == 2) {
 						failedTask[value.getTaskType()]++;
-						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+						KernelBasedApplicationStatus.getInstance().setFinalStatusLogged(taskPropertyId);
 					}
 				}
 					
@@ -663,7 +663,7 @@ public class SimLogger {
 				if (i < numOfAppTypes) {
 					// if related app is not used in this simulation, just
 					// discard it
-					if (SimSettings.getInstance().getTaskLookUpTable()[i][0] == 0)
+					if (SimSettings.getInstance().getApplicationLookUpTable()[i][0] == 0)
 						continue;
 				}
 
@@ -768,7 +768,7 @@ public class SimLogger {
 				if (i < numOfAppTypes) {
 					// if related app is not used in this simulation, just
 					// discard it
-					if (SimSettings.getInstance().getTaskLookUpTable()[i][0] == 0)
+					if (SimSettings.getInstance().getApplicationLookUpTable()[i][0] == 0)
 						continue;
 				}
 				genericBWs[i].close();

@@ -2,44 +2,45 @@ package edu.boun.edgecloudsim.utils;
 
 import java.util.*;
 
-public class TaskBasedTask {
-	private int taskBasedTaskId;
-	private int numSubTask;
-	// map from the TaskPropertyId to the inner index id
-	private Map<Integer, Integer>propertyId2Index;
-	private Map<Integer, Integer>index2PropertyId;
+public class KernelBasedApplication {
+	private int numKernel;
+	// map from the KernelId to the inner index id
+	private Map<Integer, Integer>kernelId2Index;
+	// map from the inner index id to KernelId
+	private Map<Integer, Integer>index2KernelId;
 	private boolean[] submitted;
 	// finished used to check if the task has ended
 	private boolean[] finished;
 	// -1: not tracked 0: finished 1: not finished 2: failed
-	private int taskFinalStatus;
+	private int kernelFinalStatus;
 	/*
-	 * dependency[0][1] = 1 means task 0 is dependent on task 1
+	 * dependency[1][0] = 1 means kernel 1 can only be executed after on kernel 0 is ended
 	 * 	 0 1
 	 * 0 
 	 * 1
 	 */
 	private int[][] dependency;
 	/*
+	 * Stores the run-time kernel-dependency graph information
 	 * initial: if dependency[0][1] = 1, dependency_met[0][1] = 0
 	 * 			otherwise, dependency_met[0][1] = 1
 	 * dependency_met[0][1] = 1 means dependency for 0 is met considering 1
 	 */
 	private int[][] dependency_met;
 	
+	// used in SimLogger
 	private boolean status_logged;
 	
 
-	public TaskBasedTask(int _num, int _taskBasedTaskId) {
-		numSubTask = _num;
-		taskBasedTaskId = _taskBasedTaskId;
-		propertyId2Index = new HashMap<Integer, Integer>();
-		index2PropertyId = new HashMap<Integer, Integer>();
-		submitted = new boolean[numSubTask];
-		finished = new boolean[numSubTask];
-		taskFinalStatus = -1;
+	public KernelBasedApplication(int _num, int _taskBasedTaskId) {
+		numKernel = _num;
+		kernelId2Index = new HashMap<Integer, Integer>();
+		index2KernelId = new HashMap<Integer, Integer>();
+		submitted = new boolean[numKernel];
+		finished = new boolean[numKernel];
+		kernelFinalStatus = -1;
 		status_logged = false;
-		for (int i=0; i<numSubTask; i++) {
+		for (int i=0; i<numKernel; i++) {
 			submitted[i] = false; 
 			finished[i] = false; 
 		}
@@ -47,10 +48,10 @@ public class TaskBasedTask {
 		 * Initialize the task with no dependency
 		 * dependencies are added later 
 		 */
-		dependency = new int[numSubTask][numSubTask];
-		dependency_met = new int[numSubTask][numSubTask];
-		for (int i=0; i < numSubTask; i++) {
-			for (int j=0; j<numSubTask; j++) {
+		dependency = new int[numKernel][numKernel];
+		dependency_met = new int[numKernel][numKernel];
+		for (int i=0; i < numKernel; i++) {
+			for (int j=0; j<numKernel; j++) {
 				dependency[i][j] = 0;
 				dependency_met[i][j]= 1; 
 			}
@@ -64,29 +65,29 @@ public class TaskBasedTask {
 	public void addDependency(int id, int id_dependency) {
 		//int task_index = getTaskIndex(taskId);
 		//int dependency_index = getTaskIndex(dependencyTaskId);
-		int taskId = propertyId2Index.get(id);
-		int dependencyTaskId = propertyId2Index.get(id_dependency);
-		dependency[taskId][dependencyTaskId] = 1;
-		dependency_met[taskId][dependencyTaskId] = 0;
+		int kernelIndexId = kernelId2Index.get(id);
+		int dependencyKernelId = kernelId2Index.get(id_dependency);
+		dependency[kernelIndexId][dependencyKernelId] = 1;
+		dependency_met[kernelIndexId][dependencyKernelId] = 0;
 	}
 	
 	
-	public void addSubTaskIdList(int[] subTaskIdList) {
-		for (int i=0; i<subTaskIdList.length; i++) {
-			propertyId2Index.put(subTaskIdList[i], i);
-			index2PropertyId.put(i, subTaskIdList[i]);
+	public void addKernelIdList(int[] kernelList) {
+		for (int i=0; i<kernelList.length; i++) {
+			kernelId2Index.put(kernelList[i], i);
+			index2KernelId.put(i, kernelList[i]);
 		}
 		
 	}
 	
 	/*
-	 * taskId: the index in subtaskLookUpTable
+	 * kernelId: the index in subtaskLookUpTable
 	 * remove dependency when a task finished
 	 */
-	private void removeDependency(int taskPropertyId) {
-		int task_index = propertyId2Index.get(taskPropertyId);
-		for (int i=0; i<numSubTask; i++) {
-			dependency_met[i][task_index] = 1;
+	private void removeDependency(int kernelId) {
+		int kernelIndex = kernelId2Index.get(kernelId);
+		for (int i=0; i<numKernel; i++) {
+			dependency_met[i][kernelIndex] = 1;
 		}
 	}
 
@@ -97,7 +98,7 @@ public class TaskBasedTask {
 	private boolean checkDependency(int index) {
 		int task_index = index;
 		boolean flag = true;
-		for (int i=0; i<numSubTask; i++) {
+		for (int i=0; i<numKernel; i++) {
 			if (dependency_met[task_index][i] == 0) {
 				flag = false;
 			}
@@ -111,13 +112,13 @@ public class TaskBasedTask {
 		List<Integer> tasktoSubmit = new ArrayList<Integer>();
 		removeDependency(finishedTaskPropertyId);
 		// make sure we have set all the task to submitted
-		int index_submitted = propertyId2Index.get(finishedTaskPropertyId);
+		int index_submitted = kernelId2Index.get(finishedTaskPropertyId);
 		submitted[index_submitted] = true;
 		finished[index_submitted] = true;
-		for (int index=0; index<numSubTask; index++) {
+		for (int index=0; index<numKernel; index++) {
 			// check if the dependencies has been met and whether the task has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(index2PropertyId.get(index));
+				tasktoSubmit.add(index2KernelId.get(index));
 				//submitted[index] = true; 
 			}
 		}
@@ -127,17 +128,17 @@ public class TaskBasedTask {
 	
 	public void setTaskSubmit(int taskPropertyId) {
 		//removeDependency(taskPropertyId);
-		int index_submitted = propertyId2Index.get(taskPropertyId);
+		int index_submitted = kernelId2Index.get(taskPropertyId);
 		submitted[index_submitted] = true;
 	}
 	
 	
 	public List<Integer> getInitialTaskToSubmit(){
 		List<Integer> tasktoSubmit = new ArrayList<>();
-		for (int index=0; index<numSubTask; index++) {
+		for (int index=0; index<numKernel; index++) {
 			// check whether dependencies has been met and whether the task has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(index2PropertyId.get(index));
+				tasktoSubmit.add(index2KernelId.get(index));
 				//submitted[index] = true; 
 			}
 		}
@@ -145,7 +146,7 @@ public class TaskBasedTask {
 	}
 	
 	public boolean checkReadySubmit(int taskPropertyId) {
-		int taskIndex = propertyId2Index.get(taskPropertyId);
+		int taskIndex = kernelId2Index.get(taskPropertyId);
 		if (checkDependency(taskIndex) && submitted[taskIndex] == false) {
 			return true;
 		} else {
@@ -155,7 +156,7 @@ public class TaskBasedTask {
 	
 	public boolean checkTaskBasedTaskEnd() {
 		boolean flag = true;
-		for (int i=0; i<numSubTask; i++) {
+		for (int i=0; i<numKernel; i++) {
 			if (finished[i]== false) {
 				flag = false;
 			}
@@ -166,7 +167,7 @@ public class TaskBasedTask {
 	public void checkAllSubmittedAndSetStatus() {
 		boolean flag_submit = true;
 		boolean flag_finished = true;
-		for (int i=0; i<numSubTask; i++) {
+		for (int i=0; i<numKernel; i++) {
 			if (submitted[i]== false) {
 				flag_submit = false;
 			}
@@ -176,19 +177,19 @@ public class TaskBasedTask {
 		}
 		if (flag_submit == false) {
 			// set as unfinished
-			taskFinalStatus = 1;
+			kernelFinalStatus = 1;
 		} else if (flag_finished == true) {
 			// set as finished
-			taskFinalStatus = 0;
+			kernelFinalStatus = 0;
 		}
 	}
 	
 	public void setTaskFinalStatus(int status) {
-		taskFinalStatus = status;
+		kernelFinalStatus = status;
 	}
 	
 	public int getTaskFinalStatus() {
-		return taskFinalStatus;
+		return kernelFinalStatus;
 	}
 	
 	public void setFinalStatusLogged() {

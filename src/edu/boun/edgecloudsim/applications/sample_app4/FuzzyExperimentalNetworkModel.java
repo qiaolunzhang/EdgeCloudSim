@@ -14,7 +14,7 @@ import org.cloudbus.cloudsim.core.CloudSim;
 
 import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.network.NetworkModel;
 import edu.boun.edgecloudsim.utils.Location;
 import edu.boun.edgecloudsim.utils.SimLogger;
@@ -183,22 +183,22 @@ public class FuzzyExperimentalNetworkModel extends NetworkModel {
 		wanClients = new int[SimSettings.getInstance().getNumOfEdgeDatacenters()];  //we have one access point for each datacenter
 		wlanClients = new int[SimSettings.getInstance().getNumOfEdgeDatacenters()];  //we have one access point for each datacenter
 
-		int numOfApp = SimSettings.getInstance().getTaskLookUpTable().length;
+		int numOfApp = SimSettings.getInstance().getApplicationLookUpTable().length;
 		SimSettings SS = SimSettings.getInstance();
 		for(int taskIndex=0; taskIndex<numOfApp; taskIndex++) {
-			if(SS.getTaskLookUpTable()[taskIndex][0] == 0) {
+			if(SS.getApplicationLookUpTable()[taskIndex][0] == 0) {
 				SimLogger.printLine("Usage percantage of task " + taskIndex + " is 0! Terminating simulation...");
 				System.exit(0);
 			}
 			else{
-				double weight = SS.getTaskLookUpTable()[taskIndex][0]/(double)100;
+				double weight = SS.getApplicationLookUpTable()[taskIndex][0]/(double)100;
 				
 				//assume half of the tasks use the MAN at the beginning
-				ManPoissonMeanForDownload += ((SS.getTaskLookUpTable()[taskIndex][2])*weight) * 4;
+				ManPoissonMeanForDownload += ((SS.getApplicationLookUpTable()[taskIndex][2])*weight) * 4;
 				ManPoissonMeanForUpload = ManPoissonMeanForDownload;
 				
-				avgManTaskInputSize += SS.getTaskLookUpTable()[taskIndex][5]*weight;
-				avgManTaskOutputSize += SS.getTaskLookUpTable()[taskIndex][6]*weight;
+				avgManTaskInputSize += SS.getApplicationLookUpTable()[taskIndex][5]*weight;
+				avgManTaskOutputSize += SS.getApplicationLookUpTable()[taskIndex][6]*weight;
 			}
 		}
 
@@ -218,7 +218,7 @@ public class FuzzyExperimentalNetworkModel extends NetworkModel {
     * source device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getUploadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		double delay = 0;
 		
 		//special case for man communication
@@ -244,7 +244,7 @@ public class FuzzyExperimentalNetworkModel extends NetworkModel {
     * destination device is always mobile device in our simulation scenarios!
     */
 	@Override
-	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Task task) {
+	public double getDownloadDelay(int sourceDeviceId, int destDeviceId, Kernel task) {
 		double delay = 0;
 		
 		//special case for man communication

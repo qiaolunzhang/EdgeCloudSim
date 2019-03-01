@@ -22,7 +22,7 @@ import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.edge_orchestrator.EdgeOrchestrator;
 import edu.boun.edgecloudsim.edge_server.EdgeVM;
 import edu.boun.edgecloudsim.edge_client.CpuUtilizationModel_Custom;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.edge_client.mobile_processing_unit.MobileVM;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
@@ -45,7 +45,7 @@ public class SampleEdgeOrchestrator extends EdgeOrchestrator {
 	 * 
 	 */
 	@Override
-	public int getDeviceToOffload(Task task) {
+	public int getDeviceToOffload(Kernel task) {
 		int result = 0;
 
 		if(policy.equals("ONLY_EDGE")){
@@ -73,7 +73,7 @@ public class SampleEdgeOrchestrator extends EdgeOrchestrator {
 	}
 
 	@Override
-	public Vm getVmToOffload(Task task, int deviceId) {
+	public Vm getVmToOffload(Kernel task, int deviceId) {
 		Vm selectedVM = null;
 		
 		if (deviceId == SimSettings.MOBILE_DATACENTER_ID) {

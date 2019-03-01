@@ -16,7 +16,7 @@ package edu.boun.edgecloudsim.edge_orchestrator;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.core.SimEntity;
 
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 
 public abstract class EdgeOrchestrator extends SimEntity{
 	protected String policy;
@@ -36,10 +36,10 @@ public abstract class EdgeOrchestrator extends SimEntity{
 	/*
 	 * decides where to offload
 	 */
-	public abstract int getDeviceToOffload(Task task);
+	public abstract int getDeviceToOffload(Kernel task);
 	
 	/*
 	 * returns proper VM from the edge orchestrator point of view
 	 */
-	public abstract Vm getVmToOffload(Task task, int deviceId);
+	public abstract Vm getVmToOffload(Kernel task, int deviceId);
 }

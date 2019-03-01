@@ -14,7 +14,7 @@ import org.apache.commons.math3.distribution.ExponentialDistribution;
 
 import edu.boun.edgecloudsim.core.SimSettings;
 
-public class TaskProperty {
+public class KernelProperty {
     private double startTime;
     private long length, inputFileSize, outputFileSize;
     private int taskType;
@@ -23,7 +23,7 @@ public class TaskProperty {
     private boolean submitted;
     private int taskPropertyId;
     
-    public TaskProperty(double _startTime, int _mobileDeviceId, int _taskType, int _pesNumber, long _length, long _inputFileSize, long _outputFileSize) {
+    public KernelProperty(double _startTime, int _mobileDeviceId, int _taskType, int _pesNumber, long _length, long _inputFileSize, long _outputFileSize) {
     	startTime=_startTime;
     	mobileDeviceId=_mobileDeviceId;
     	taskType=_taskType;
@@ -34,7 +34,7 @@ public class TaskProperty {
        	submitted = false;
 	}
     
-    public TaskProperty(int _mobileDeviceId, int _taskType, double _startTime, ExponentialDistribution[][] expRngList, int _taskPropertyId) {
+    public KernelProperty(int _mobileDeviceId, int _taskType, double _startTime, ExponentialDistribution[][] expRngList, int _taskPropertyId) {
     	mobileDeviceId=_mobileDeviceId;
     	startTime=_startTime;
     	taskType=_taskType;
@@ -43,12 +43,12 @@ public class TaskProperty {
     	outputFileSize =(long)expRngList[_taskType][1].sample();
     	length = (long)expRngList[_taskType][2].sample();
     	
-    	pesNumber = (int)SimSettings.getInstance().getTaskLookUpTable()[_taskType][8];
+    	pesNumber = (int)SimSettings.getInstance().getApplicationLookUpTable()[_taskType][8];
     	taskPropertyId = _taskPropertyId;
     	submitted = false;
 	}
     
-    public TaskProperty(int _mobileDeviceId, int _subTaskType, int _taskType, double _startTime, ExponentialDistribution[][] expRngList, int _taskPropertyId) {
+    public KernelProperty(int _mobileDeviceId, int _subTaskType, int _taskType, double _startTime, ExponentialDistribution[][] expRngList, int _taskPropertyId) {
     	mobileDeviceId=_mobileDeviceId;
     	startTime=_startTime;
     	taskType=_taskType;
@@ -57,7 +57,7 @@ public class TaskProperty {
     	outputFileSize =(long)expRngList[_subTaskType][1].sample();
     	length = (long)expRngList[_subTaskType][2].sample();
     	
-    	pesNumber = (int)SimSettings.getInstance().getSubtaskLookUpTable()[_subTaskType][8];
+    	pesNumber = (int)SimSettings.getInstance().getKernelLookUpTable()[_subTaskType][8];
     	taskPropertyId = _taskPropertyId;
     	submitted = false;
     }

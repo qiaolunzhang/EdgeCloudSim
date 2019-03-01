@@ -29,7 +29,7 @@ import edu.boun.edgecloudsim.edge_orchestrator.EdgeOrchestrator;
 import edu.boun.edgecloudsim.edge_server.EdgeHost;
 import edu.boun.edgecloudsim.edge_server.EdgeVM;
 import edu.boun.edgecloudsim.edge_client.CpuUtilizationModel_Custom;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
 public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
@@ -66,7 +66,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 	 * It is assumed that the edge orchestrator app is running on the edge devices in a distributed manner
 	 */
 	@Override
-	public int getDeviceToOffload(Task task) {
+	public int getDeviceToOffload(Kernel task) {
 		int result = 0;
 		
 		//RODO: return proper host ID
@@ -80,7 +80,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 			double nearestEdgeUtilization = 0;
 			
 			//dummy task to simulate a task with 1 Mbit file size to upload and download 
-			Task dummyTask = new Task(0, 0, 0, 0, 128, 128, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
+			Kernel dummyTask = new Kernel(0, 0, 0, 0, 128, 128, new UtilizationModelFull(), new UtilizationModelFull(), new UtilizationModelFull());
 			
 			double wanDelay = SimManager.getInstance().getNetworkModel().getUploadDelay(task.getMobileDeviceId(),
 					SimSettings.CLOUD_DATACENTER_ID, dummyTask /* 1 Mbit */);
@@ -140,7 +140,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 					bestHostUtilization = bestRemoteEdgeUtilization;
 				}
 				
-				double delay_sensitivity = SimSettings.getInstance().getTaskLookUpTable()[task.getTaskType()][12];
+				double delay_sensitivity = SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][12];
 
 		        // Set inputs
 		        fis1.setVariable("wan_bw", wanBW);
@@ -171,7 +171,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 			else if(policy.equals("FUZZY_COMPETITOR")){
 				double utilization = edgeUtilization;
 	        	double cpuSpeed = (double)100 - utilization;
-	        	double videoExecution = SimSettings.getInstance().getTaskLookUpTable()[task.getTaskType()][12];
+	        	double videoExecution = SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][12];
 	        	double dataSize = task.getCloudletFileSize() + task.getCloudletOutputSize();
 	        	double normalizedDataSize = Math.min(MAX_DATA_SIZE, dataSize)/MAX_DATA_SIZE;
 	        	
@@ -232,7 +232,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 	}
 
 	@Override
-	public Vm getVmToOffload(Task task, int deviceId) {
+	public Vm getVmToOffload(Kernel task, int deviceId) {
 		Vm selectedVM = null;
 		
 		if(deviceId == SimSettings.CLOUD_DATACENTER_ID){

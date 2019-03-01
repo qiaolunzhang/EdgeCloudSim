@@ -24,7 +24,7 @@ import edu.boun.edgecloudsim.core.SimManager;
 import edu.boun.edgecloudsim.core.SimSettings;
 import edu.boun.edgecloudsim.edge_server.EdgeVM;
 import edu.boun.edgecloudsim.edge_client.CpuUtilizationModel_Custom;
-import edu.boun.edgecloudsim.edge_client.Task;
+import edu.boun.edgecloudsim.edge_client.Kernel;
 import edu.boun.edgecloudsim.utils.Location;
 import edu.boun.edgecloudsim.utils.SimUtils;
 
@@ -48,13 +48,13 @@ public class BasicEdgeOrchestrator extends EdgeOrchestrator {
 	}
 
 	@Override
-	public int getDeviceToOffload(Task task) {
+	public int getDeviceToOffload(Kernel task) {
 		int result = SimSettings.GENERIC_EDGE_DEVICE_ID;
 		if(!simScenario.equals("SINGLE_TIER")){
 			//decide to use cloud or Edge VM
 			int CloudVmPicker = SimUtils.getRandomNumber(0, 100);
 			
-			if(CloudVmPicker <= SimSettings.getInstance().getTaskLookUpTable()[task.getTaskType()][1])
+			if(CloudVmPicker <= SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][1])
 				result = SimSettings.CLOUD_DATACENTER_ID;
 			else
 				result = SimSettings.GENERIC_EDGE_DEVICE_ID;
@@ -64,7 +64,7 @@ public class BasicEdgeOrchestrator extends EdgeOrchestrator {
 	}
 	
 	@Override
-	public Vm getVmToOffload(Task task, int deviceId) {
+	public Vm getVmToOffload(Kernel task, int deviceId) {
 		Vm selectedVM = null;
 		
 		if(deviceId == SimSettings.CLOUD_DATACENTER_ID){
@@ -91,7 +91,7 @@ public class BasicEdgeOrchestrator extends EdgeOrchestrator {
 		return selectedVM;
 	}
 	
-	public EdgeVM selectVmOnHost(Task task){
+	public EdgeVM selectVmOnHost(Kernel task){
 		EdgeVM selectedVM = null;
 		
 		Location deviceLocation = SimManager.getInstance().getMobilityModel().getLocation(task.getMobileDeviceId(), CloudSim.clock());
@@ -156,7 +156,7 @@ public class BasicEdgeOrchestrator extends EdgeOrchestrator {
 		return selectedVM;
 	}
 
-	public EdgeVM selectVmOnLoadBalancer(Task task){
+	public EdgeVM selectVmOnLoadBalancer(Kernel task){
 		EdgeVM selectedVM = null;
 		
 		if(policy.equalsIgnoreCase("RANDOM_FIT")){
