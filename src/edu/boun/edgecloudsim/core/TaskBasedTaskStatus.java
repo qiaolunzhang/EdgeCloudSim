@@ -79,6 +79,16 @@ public class TaskBasedTaskStatus {
 		return status;
 	}
 	
+	public void setFinalStatusLogged(int taskPropertyId) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		taskBasedTaskMap.get(taskBasedTaskId).setFinalStatusLogged();
+	}
+	
+	public boolean checkFinalStatusLogged(int taskPropertyId) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		return taskBasedTaskMap.get(taskBasedTaskId).checkStatusUnLogged();
+	}
+	
 
 	public void checkAllSubmittedAndSetStatus() {
 		for (Integer key: taskBasedTaskMap.keySet()) {
@@ -104,7 +114,15 @@ public class TaskBasedTaskStatus {
 		instance = null;
 	}
 	
-	public void getStatics() {
+	/*
+	public int getTaskFinalStatus(int taskPropertyId) {
+		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
+		return taskBasedTaskMap.get(taskBasedTaskId).getTaskFinalStatus();
+	}
+	*/
+	
+	public int[] getStatics() {
+		int[] taskFinalStatucs = new int[3];
 		int success = 0;
 		int unfinished = 0;
 		int fail = 0;
@@ -118,9 +136,10 @@ public class TaskBasedTaskStatus {
 				fail++;
 			}
 		}
-		
-		System.out.println("success number: " + success);
-		System.out.println("unfinished number: " + unfinished);
-		System.out.println("fail number: " + fail);
+		taskFinalStatucs[0] = success;
+		taskFinalStatucs[1] = unfinished;
+		taskFinalStatucs[2] = fail;
+		return taskFinalStatucs;
 	}
+
 }

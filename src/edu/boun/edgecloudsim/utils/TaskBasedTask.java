@@ -27,6 +27,8 @@ public class TaskBasedTask {
 	 */
 	private int[][] dependency_met;
 	
+	private boolean status_logged;
+	
 
 	public TaskBasedTask(int _num, int _taskBasedTaskId) {
 		numSubTask = _num;
@@ -36,6 +38,7 @@ public class TaskBasedTask {
 		submitted = new boolean[numSubTask];
 		finished = new boolean[numSubTask];
 		taskFinalStatus = -1;
+		status_logged = false;
 		for (int i=0; i<numSubTask; i++) {
 			submitted[i] = false; 
 			finished[i] = false; 
@@ -186,5 +189,18 @@ public class TaskBasedTask {
 	
 	public int getTaskFinalStatus() {
 		return taskFinalStatus;
+	}
+	
+	public void setFinalStatusLogged() {
+		status_logged = true;
+	}
+	
+	public boolean checkStatusUnLogged() {
+		if (status_logged) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 }

@@ -151,6 +151,7 @@ public class SimLogger {
 
 	public void simStopped() throws IOException {
 		int numOfAppTypes = SimSettings.getInstance().getTaskLookUpTable().length;
+		int numTaskBasedTask = 0;
 
 		File successFile = null, failFile = null, vmLoadFile = null, locationFile = null;
 		FileWriter successFW = null, failFW = null, vmLoadFW = null, locationFW = null;
@@ -168,16 +169,31 @@ public class SimLogger {
 		int[] uncompletedTaskOnCloud = new int[numOfAppTypes + 1];
 		int[] uncompletedTaskOnEdge = new int[numOfAppTypes + 1];
 		int[] uncompletedTaskOnMobile = new int[numOfAppTypes + 1];
+		
+		int[] uncompletedSubTask = new int[numOfAppTypes + 1];
+		int[] uncompletedSubTaskOnCloud = new int[numOfAppTypes + 1];
+		int[] uncompletedSubTaskOnEdge = new int[numOfAppTypes + 1];
+		int[] uncompletedSubTaskOnMobile = new int[numOfAppTypes + 1];
 
 		int[] completedTask = new int[numOfAppTypes + 1];
 		int[] completedTaskOnCloud = new int[numOfAppTypes + 1];
 		int[] completedTaskOnEdge = new int[numOfAppTypes + 1];
 		int[] completedTaskOnMobile = new int[numOfAppTypes + 1];
 
+		int[] completedSubTask = new int[numOfAppTypes + 1];
+		int[] completedSubTaskOnCloud = new int[numOfAppTypes + 1];
+		int[] completedSubTaskOnEdge = new int[numOfAppTypes + 1];
+		int[] completedSubTaskOnMobile = new int[numOfAppTypes + 1];
+
 		int[] failedTask = new int[numOfAppTypes + 1];
 		int[] failedTaskOnCloud = new int[numOfAppTypes + 1];
 		int[] failedTaskOnEdge = new int[numOfAppTypes + 1];
 		int[] failedTaskOnMobile = new int[numOfAppTypes + 1];
+
+		int[] failedSubTask = new int[numOfAppTypes + 1];
+		int[] failedSubTaskOnCloud = new int[numOfAppTypes + 1];
+		int[] failedSubTaskOnEdge = new int[numOfAppTypes + 1];
+		int[] failedSubTaskOnMobile = new int[numOfAppTypes + 1];
 
 		double[] networkDelay = new double[numOfAppTypes + 1];
 		double[] wanDelay = new double[numOfAppTypes + 1];
@@ -202,6 +218,11 @@ public class SimLogger {
 		int[] failedTaskDueToVmCapacityOnCloud = new int[numOfAppTypes + 1];
 		int[] failedTaskDueToVmCapacityOnEdge = new int[numOfAppTypes + 1];
 		int[] failedTaskDueToVmCapacityOnMobile = new int[numOfAppTypes + 1];
+
+		int[] failedSubTaskDueToVmCapacity = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDueToVmCapacityOnCloud = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDueToVmCapacityOnEdge = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDueToVmCapacityOnMobile = new int[numOfAppTypes + 1];
 		
 		double[] cost = new double[numOfAppTypes + 1];
 		int[] failedTaskDuetoBw = new int[numOfAppTypes + 1];
@@ -209,6 +230,13 @@ public class SimLogger {
 		int[] failedTaskDuetoManBw = new int[numOfAppTypes + 1];
 		int[] failedTaskDuetoWanBw = new int[numOfAppTypes + 1];
 		int[] failedTaskDuetoMobility = new int[numOfAppTypes + 1];
+
+		int[] failedSubTaskDuetoBw = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDuetoLanBw = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDuetoManBw = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDuetoWanBw = new int[numOfAppTypes + 1];
+		int[] failedSubTaskDuetoMobility = new int[numOfAppTypes + 1];
+
 
 		// open all files and prepare them for write
 		if (fileLogEnabled) {
@@ -396,7 +424,138 @@ public class SimLogger {
 			}
 		}
 		
-		TaskBasedTaskStatus.getInstance().getStatics();
+
+		//int[] taskFinalStatus = TaskBasedTaskStatus.getInstance().getStatics();
+		
+		for (Map.Entry<Integer, LogItem> entry : taskMap.entrySet()) {
+			Integer key = entry.getKey();
+			LogItem value = entry.getValue();
+			
+			if (value.isInWarmUpPeriod())
+				continue;
+
+			int taskPropertyId = value.getTaskPropertyid();
+
+			if (TaskBasedTaskStatus.getInstance().checkSubTask(taskPropertyId)) {
+					//System.out.println("It's a sub-task");
+				int status = TaskBasedTaskStatus.getInstance().getTaskBasedTaskFinalStatus(taskPropertyId);
+				
+				if (TaskBasedTaskStatus.getInstance().checkFinalStatusLogged(taskPropertyId)) {
+					numTaskBasedTask++;
+					if (status == 0) {
+						completedTask[value.getTaskType()]++;
+						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+					}
+					else if (status == 1) {
+						uncompletedTask[value.getTaskType()]++;
+						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+					} else if (status == 2) {
+						failedTask[value.getTaskType()]++;
+						TaskBasedTaskStatus.getInstance().setFinalStatusLogged(taskPropertyId);
+					}
+				}
+					
+				if (value.getStatus() == SimLogger.TASK_STATUS.COMLETED) {
+					completedSubTask[value.getTaskType()]++;
+
+					if (value.getVmType() == SimSettings.VM_TYPES.CLOUD_VM.ordinal())
+						completedSubTaskOnCloud[value.getTaskType()]++;
+					else if (value.getVmType() == SimSettings.VM_TYPES.MOBILE_VM.ordinal())
+						completedSubTaskOnMobile[value.getTaskType()]++;
+					else
+						completedSubTaskOnEdge[value.getTaskType()]++;
+				}
+				else if(value.getStatus() == SimLogger.TASK_STATUS.CREATED ||
+						value.getStatus() == SimLogger.TASK_STATUS.UPLOADING ||
+						value.getStatus() == SimLogger.TASK_STATUS.PROCESSING ||
+						value.getStatus() == SimLogger.TASK_STATUS.DOWNLOADING)
+				{
+					uncompletedSubTask[value.getTaskType()]++;
+					if (value.getVmType() == SimSettings.VM_TYPES.CLOUD_VM.ordinal())
+						uncompletedSubTaskOnCloud[value.getTaskType()]++;
+					else if (value.getVmType() == SimSettings.VM_TYPES.MOBILE_VM.ordinal())
+						uncompletedSubTaskOnMobile[value.getTaskType()]++;
+					else
+						uncompletedSubTaskOnEdge[value.getTaskType()]++;
+				}
+				else {
+					failedSubTask[value.getTaskType()]++;
+
+					if (value.getVmType() == SimSettings.VM_TYPES.CLOUD_VM.ordinal())
+						failedSubTaskOnCloud[value.getTaskType()]++;
+					else if (value.getVmType() == SimSettings.VM_TYPES.MOBILE_VM.ordinal())
+						failedSubTaskOnMobile[value.getTaskType()]++;
+					else
+						failedSubTaskOnEdge[value.getTaskType()]++;
+				}
+
+				if (status == 0) {
+					cost[value.getTaskType()] += value.getCost();
+					serviceTime[value.getTaskType()] += value.getServiceTime();
+					networkDelay[value.getTaskType()] += value.getNetworkDelay();
+					processingTime[value.getTaskType()] += (value.getServiceTime() - value.getNetworkDelay());
+					
+					if(value.getNetworkDelay(NETWORK_DELAY_TYPES.WLAN_DELAY) != 0) {
+						lanUsage[value.getTaskType()]++;
+						lanDelay[value.getTaskType()] += value.getNetworkDelay(NETWORK_DELAY_TYPES.WLAN_DELAY);
+					}
+					if(value.getNetworkDelay(NETWORK_DELAY_TYPES.MAN_DELAY) != 0) {
+						manUsage[value.getTaskType()]++;
+						manDelay[value.getTaskType()] += value.getNetworkDelay(NETWORK_DELAY_TYPES.MAN_DELAY);
+					}
+					if(value.getNetworkDelay(NETWORK_DELAY_TYPES.WAN_DELAY) != 0) {
+						wanUsage[value.getTaskType()]++;
+						wanDelay[value.getTaskType()] += value.getNetworkDelay(NETWORK_DELAY_TYPES.WAN_DELAY);
+					}
+
+					
+					if (value.getVmType() == SimSettings.VM_TYPES.CLOUD_VM.ordinal()) {
+						serviceTimeOnCloud[value.getTaskType()] += value.getServiceTime();
+						processingTimeOnCloud[value.getTaskType()] += (value.getServiceTime() - value.getNetworkDelay());
+					}
+					else if (value.getVmType() == SimSettings.VM_TYPES.MOBILE_VM.ordinal()) {
+						serviceTimeOnMobile[value.getTaskType()] += value.getServiceTime();
+						processingTimeOnMobile[value.getTaskType()] += value.getServiceTime();
+					}
+					else {
+						serviceTimeOnEdge[value.getTaskType()] += value.getServiceTime();
+						processingTimeOnEdge[value.getTaskType()] += (value.getServiceTime() - value.getNetworkDelay());
+					}
+
+					if (fileLogEnabled && SimSettings.getInstance().getDeepFileLoggingEnabled())
+						appendToFile(successBW, value.toString(key));
+				} else if (value.getStatus() == SimLogger.TASK_STATUS.REJECTED_DUE_TO_VM_CAPACITY) {
+					failedSubTaskDueToVmCapacity[value.getTaskType()]++;
+					
+					if (value.getVmType() == SimSettings.VM_TYPES.CLOUD_VM.ordinal())
+						failedSubTaskDueToVmCapacityOnCloud[value.getTaskType()]++;
+					else if (value.getVmType() == SimSettings.VM_TYPES.MOBILE_VM.ordinal())
+						failedSubTaskDueToVmCapacityOnMobile[value.getTaskType()]++;
+					else
+						failedSubTaskDueToVmCapacityOnEdge[value.getTaskType()]++;
+					
+					if (fileLogEnabled && SimSettings.getInstance().getDeepFileLoggingEnabled())
+						appendToFile(failBW, value.toString(key));
+				} else if (value.getStatus() == SimLogger.TASK_STATUS.REJECTED_DUE_TO_BANDWIDTH
+						|| value.getStatus() == SimLogger.TASK_STATUS.UNFINISHED_DUE_TO_BANDWIDTH) {
+					failedSubTaskDuetoBw[value.getTaskType()]++;
+					if (value.getNetworkError() == NETWORK_ERRORS.LAN_ERROR)
+						failedSubTaskDuetoLanBw[value.getTaskType()]++;
+					else if (value.getNetworkError() == NETWORK_ERRORS.MAN_ERROR)
+						failedSubTaskDuetoManBw[value.getTaskType()]++;
+					else if (value.getNetworkError() == NETWORK_ERRORS.WAN_ERROR)
+						failedSubTaskDuetoWanBw[value.getTaskType()]++;
+
+					if (fileLogEnabled && SimSettings.getInstance().getDeepFileLoggingEnabled())
+						appendToFile(failBW, value.toString(key));
+				} else if (value.getStatus() == SimLogger.TASK_STATUS.UNFINISHED_DUE_TO_MOBILITY) {
+					failedSubTaskDuetoMobility[value.getTaskType()]++;
+					if (fileLogEnabled && SimSettings.getInstance().getDeepFileLoggingEnabled())
+						appendToFile(failBW, value.toString(key));
+				}
+				}
+		}
+		
 
 		// calculate total values
 		uncompletedTask[numOfAppTypes] = IntStream.of(uncompletedTask).sum();
@@ -404,15 +563,33 @@ public class SimLogger {
 		uncompletedTaskOnEdge[numOfAppTypes] = IntStream.of(uncompletedTaskOnEdge).sum();
 		uncompletedTaskOnMobile[numOfAppTypes] = IntStream.of(uncompletedTaskOnMobile).sum();
 
+		uncompletedSubTask[numOfAppTypes] = IntStream.of(uncompletedSubTask).sum();
+		uncompletedSubTaskOnCloud[numOfAppTypes] = IntStream.of(uncompletedSubTaskOnCloud).sum();
+		uncompletedSubTaskOnEdge[numOfAppTypes] = IntStream.of(uncompletedSubTaskOnEdge).sum();
+		uncompletedSubTaskOnMobile[numOfAppTypes] = IntStream.of(uncompletedSubTaskOnMobile).sum();
+
+
 		completedTask[numOfAppTypes] = IntStream.of(completedTask).sum();
 		completedTaskOnCloud[numOfAppTypes] = IntStream.of(completedTaskOnCloud).sum();
 		completedTaskOnEdge[numOfAppTypes] = IntStream.of(completedTaskOnEdge).sum();
 		completedTaskOnMobile[numOfAppTypes] = IntStream.of(completedTaskOnMobile).sum();
 
+		completedSubTask[numOfAppTypes] = IntStream.of(completedSubTask).sum();
+		completedSubTaskOnCloud[numOfAppTypes] = IntStream.of(completedSubTaskOnCloud).sum();
+		completedSubTaskOnEdge[numOfAppTypes] = IntStream.of(completedSubTaskOnEdge).sum();
+		completedSubTaskOnMobile[numOfAppTypes] = IntStream.of(completedSubTaskOnMobile).sum();
+
+
 		failedTask[numOfAppTypes] = IntStream.of(failedTask).sum();
 		failedTaskOnCloud[numOfAppTypes] = IntStream.of(failedTaskOnCloud).sum();
 		failedTaskOnEdge[numOfAppTypes] = IntStream.of(failedTaskOnEdge).sum();
 		failedTaskOnMobile[numOfAppTypes] = IntStream.of(failedTaskOnMobile).sum();
+
+		failedSubTask[numOfAppTypes] = IntStream.of(failedSubTask).sum();
+		failedSubTaskOnCloud[numOfAppTypes] = IntStream.of(failedSubTaskOnCloud).sum();
+		failedSubTaskOnEdge[numOfAppTypes] = IntStream.of(failedSubTaskOnEdge).sum();
+		failedSubTaskOnMobile[numOfAppTypes] = IntStream.of(failedSubTaskOnMobile).sum();
+
 
 		networkDelay[numOfAppTypes] = DoubleStream.of(networkDelay).sum();
 		lanDelay[numOfAppTypes] = DoubleStream.of(lanDelay).sum();
@@ -599,29 +776,58 @@ public class SimLogger {
 		}
 
 		// printout important results
-		printLine("# of tasks (Edge/Cloud/Mobile): "
-				+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes]) + "("
+		printLine("Total Task amount: " 
+				+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes] + uncompletedTask[numOfAppTypes])
+				);
+		printLine("Task-Based Task amount: " + numTaskBasedTask);
+		printLine("# of atomic tasks (Edge/Cloud/Mobile): "
+				//+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes]) + "("
 				+ (failedTaskOnEdge[numOfAppTypes] + completedTaskOnEdge[numOfAppTypes]) + "/" 
 				+ (failedTaskOnCloud[numOfAppTypes]+ completedTaskOnCloud[numOfAppTypes]) + "/" 
 				+ (failedTaskOnMobile[numOfAppTypes]+ completedTaskOnMobile[numOfAppTypes]) + ")");
+		printLine("# of Task-Based sub-tasks (Edge/Cloud/Mobile): "
+				//+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes]) + "("
+				+ (failedSubTaskOnEdge[numOfAppTypes] + completedSubTaskOnEdge[numOfAppTypes]) + "/" 
+				+ (failedSubTaskOnCloud[numOfAppTypes]+ completedSubTaskOnCloud[numOfAppTypes]) + "/" 
+				+ (failedSubTaskOnMobile[numOfAppTypes]+ completedSubTaskOnMobile[numOfAppTypes]) + ")");
 		
-		printLine("# of failed tasks (Edge/Cloud/Mobile): "
-				+ failedTask[numOfAppTypes] + "("
+		printLine("# of failed tasks (Edge/Cloud/Mobile): ("
+				//+ failedTask[numOfAppTypes] + "("
 				+ failedTaskOnEdge[numOfAppTypes] + "/"
 				+ failedTaskOnCloud[numOfAppTypes] + "/"
 				+ failedTaskOnMobile[numOfAppTypes] + ")");
+
+		printLine("# of failed TaskBased sub-tasks (Edge/Cloud/Mobile): ("
+				//+ failedTask[numOfAppTypes] + "("
+				+ failedSubTaskOnEdge[numOfAppTypes] + "/"
+				+ failedSubTaskOnCloud[numOfAppTypes] + "/"
+				+ failedSubTaskOnMobile[numOfAppTypes] + ")");
+	
 		
-		printLine("# of completed tasks (Edge/Cloud/Mobile): "
-				+ completedTask[numOfAppTypes] + "("
+		printLine("# of completed tasks (Edge/Cloud/Mobile): ("
+				//+ completedTask[numOfAppTypes] + "("
 				+ completedTaskOnEdge[numOfAppTypes] + "/"
 				+ completedTaskOnCloud[numOfAppTypes] + "/"
 				+ completedTaskOnMobile[numOfAppTypes] + ")");
+
+		printLine("# of completed Task-Based sub-tasks (Edge/Cloud/Mobile): ("
+				//+ completedTask[numOfAppTypes] + "("
+				+ completedSubTaskOnEdge[numOfAppTypes] + "/"
+				+ completedSubTaskOnCloud[numOfAppTypes] + "/"
+				+ completedSubTaskOnMobile[numOfAppTypes] + ")");
 		
-		printLine("# of uncompleted tasks (Edge/Cloud/Mobile): "
-				+ uncompletedTask[numOfAppTypes] + "("
+		printLine("# of uncompleted tasks (Edge/Cloud/Mobile): ("
+				//+ uncompletedTask[numOfAppTypes] + "("
 				+ uncompletedTaskOnEdge[numOfAppTypes] + "/"
 				+ uncompletedTaskOnCloud[numOfAppTypes] + "/"
 				+ uncompletedTaskOnMobile[numOfAppTypes] + ")");
+
+		printLine("# of uncompleted Task-Based tasks (Edge/Cloud/Mobile): ("
+				//+ uncompletedTask[numOfAppTypes] + "("
+				+ uncompletedSubTaskOnEdge[numOfAppTypes] + "/"
+				+ uncompletedSubTaskOnCloud[numOfAppTypes] + "/"
+				+ uncompletedSubTaskOnMobile[numOfAppTypes] + ")");
+
 
 		printLine("# of failed tasks due to vm capacity (Edge/Cloud/Mobile): "
 				+ failedTaskDueToVmCapacity[numOfAppTypes] + "("
