@@ -55,29 +55,29 @@ public class KernelBasedApplicationStatus {
 	
 	public List<Integer> getTaskSubmit(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		List<Integer> newTaskList = kernelBasedApplicationMap.get(taskBasedTaskId).getTaskToSubmit(taskPropertyId);
+		List<Integer> newTaskList = kernelBasedApplicationMap.get(taskBasedTaskId).getKernelToSubmit(taskPropertyId);
 		return newTaskList;
 	}
 	
 	public void setTaskSubmit(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		kernelBasedApplicationMap.get(taskBasedTaskId).setTaskSubmit(taskPropertyId);
+		kernelBasedApplicationMap.get(taskBasedTaskId).setKernelSubmit(taskPropertyId);
 	}
 	
 	public boolean checkTaskBasedTaskEnd(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkTaskBasedTaskEnd();
+		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkKernelBasedApplicationEnd();
 		return result;
 	}
 	
 	public void setTaskBasedTaskFinalStatus(int taskPropertyId, int status) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		kernelBasedApplicationMap.get(taskBasedTaskId).setTaskFinalStatus(status);
+		kernelBasedApplicationMap.get(taskBasedTaskId).setKBAPPFinalStatus(status);
 	}
 	
 	public int getTaskBasedTaskFinalStatus(int taskPropertyId) {
 		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		int status = kernelBasedApplicationMap.get(taskBasedTaskId).getTaskFinalStatus();
+		int status = kernelBasedApplicationMap.get(taskBasedTaskId).getKBAPPFinalStatus();
 		return status;
 	}
 	
@@ -112,6 +112,9 @@ public class KernelBasedApplicationStatus {
 		return simManagerId;
 	}
 	
+	/*
+	 * reset this class for the next scenario
+	 */
 	public void reset() {
 		instance = null;
 	}
@@ -123,13 +126,17 @@ public class KernelBasedApplicationStatus {
 	}
 	*/
 	
+	public int getNumKernelBasedApplication() {
+		return numKernelBasedApplication;
+	}
+	
 	public int[] getStatics() {
-		int[] taskFinalStatucs = new int[3];
+		int[] allKBAPPFinalStatus = new int[3];
 		int success = 0;
 		int unfinished = 0;
 		int fail = 0;
 		for (Integer key: kernelBasedApplicationMap.keySet()) {
-			int status = kernelBasedApplicationMap.get(key).getTaskFinalStatus();
+			int status = kernelBasedApplicationMap.get(key).getKBAPPFinalStatus();
 			if (status == 0) {
 				success++;
 			} else if (status == 1) {
@@ -138,10 +145,10 @@ public class KernelBasedApplicationStatus {
 				fail++;
 			}
 		}
-		taskFinalStatucs[0] = success;
-		taskFinalStatucs[1] = unfinished;
-		taskFinalStatucs[2] = fail;
-		return taskFinalStatucs;
+		allKBAPPFinalStatus[0] = success;
+		allKBAPPFinalStatus[1] = unfinished;
+		allKBAPPFinalStatus[2] = fail;
+		return allKBAPPFinalStatus;
 	}
 
 }

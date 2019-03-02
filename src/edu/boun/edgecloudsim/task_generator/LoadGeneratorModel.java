@@ -32,25 +32,27 @@ public abstract class LoadGeneratorModel {
 		simScenario=_simScenario;
 	};
 	
-	/*
-	 * each task has a virtual start time
-	 * it will be used while generating task
+	/**
+	 * @return the list of all KernelProperty
 	 */
 	public List<KernelProperty> getKernelPropertyList() {
 		return kernelPropertyList;
 	}
 
 	/*
-	 * fill task list according to related task generation model
+	 * fill kernelProperty list according to related task generation model
 	 */
 	public abstract void initializeModel();
 	
 	/*
-	 * returns the task type (index) that the mobile device uses
+	 * returns the Application type (index) that the mobile device uses
 	 */
-	public abstract int getTaskTypeOfDevice(int deviceId);
+	public abstract int getApplicationTypeOfDevice(int deviceId);
 	
-	public int getKernelPropertyIndex(int taskPropertyId) {
+	/*
+	 * This function should be overwritten in IdleActiveLoadGenerator
+	 */
+	public int getKernelPropertyIndex(int kernelId) {
 		return -1;
 	};
 	

@@ -26,7 +26,7 @@ import edu.boun.edgecloudsim.utils.KernelBasedApplication;
 
 public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 	private Map<Integer, Integer>kernelId2KernelPropertyListIndex;
-	int taskTypeOfDevices[];
+	int applicationTypeOfDevices[];
 	public IdleActiveLoadGenerator(int _numberOfMobileDevices, double _simulationTime, String _simScenario) {
 		super(_numberOfMobileDevices, _simulationTime, _simScenario);
 	}
@@ -38,10 +38,10 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 		kernelBasedApplicationList = new ArrayList<KernelBasedApplication>();
 		kernelId2KernelPropertyListIndex = new HashMap<Integer, Integer>();
 		
-		//exponential number generator for file input size, file output size and task length
+		//exponential number generator for file input size, file output size and kernel length
 		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getApplicationLookUpTable().length][3];
-		//exponential number generator for sub-task
-		ExponentialDistribution[][] subtaskExpRngList = new ExponentialDistribution[SimSettings.getInstance().getKernelLookUpTable().length][3];
+		//exponential number generator for kernel in Kernel-based application
+		ExponentialDistribution[][] kernelKBAPPExpRngList = new ExponentialDistribution[SimSettings.getInstance().getKernelLookUpTable().length][3];
 		//create random number generator for each place
 		for(int i=0; i<SimSettings.getInstance().getApplicationLookUpTable().length; i++) {
 			if(SimSettings.getInstance().getApplicationLookUpTable()[i][0] ==0)
@@ -51,41 +51,42 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 			expRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getApplicationLookUpTable()[i][6]);
 			expRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getApplicationLookUpTable()[i][7]);
 		}
-		// create random number generator for each place for subtask
+		// create random number generator for each place for kernel in kernal-based application
 		for(int i=0; i<SimSettings.getInstance().getKernelLookUpTable().length; i++) {
 			if(SimSettings.getInstance().getKernelLookUpTable()[i][0]==0)
 				continue;
 			
-			subtaskExpRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][5]);
-			subtaskExpRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][6]);
-			subtaskExpRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][7]);
+			kernelKBAPPExpRngList[i][0] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][5]);
+			kernelKBAPPExpRngList[i][1] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][6]);
+			kernelKBAPPExpRngList[i][2] = new ExponentialDistribution(SimSettings.getInstance().getKernelLookUpTable()[i][7]);
 		}
 		
-		//Each mobile device utilizes an app type (task type)
-		int taskPropertyId = 0;
-		int taskBasedTaskId = 0;
-		taskTypeOfDevices = new int[numberOfMobileDevices];
+		//Each mobile device utilizes an app type
+		// the id of the kernel, which will be used to distinguish the kernel
+		int kernelId = 0;
+		int kernelBasedAppId = 0;
+		applicationTypeOfDevices = new int[numberOfMobileDevices];
 		for(int i=0; i<numberOfMobileDevices; i++) {
-			int randomTaskType = -1;
-			double taskTypeSelector = SimUtils.getRandomDoubleNumber(0,100);
-			double taskTypePercentage = 0;
+			int randomApplicationType = -1;
+			double applicationTypeSelector = SimUtils.getRandomDoubleNumber(0,100);
+			double applicationTypePercentage = 0;
 			for (int j=0; j<SimSettings.getInstance().getApplicationLookUpTable().length; j++) {
-				taskTypePercentage += SimSettings.getInstance().getApplicationLookUpTable()[j][0];
-				if(taskTypeSelector <= taskTypePercentage){
-					randomTaskType = j;
+				applicationTypePercentage += SimSettings.getInstance().getApplicationLookUpTable()[j][0];
+				if(applicationTypeSelector <= applicationTypePercentage){
+					randomApplicationType = j;
 					break;
 				}
 			}
-			if(randomTaskType == -1){
+			if(randomApplicationType == -1){
 				SimLogger.printLine("Impossible is occured! no random task type!");
 				continue;
 			}
 			
-			taskTypeOfDevices[i] = randomTaskType;
+			applicationTypeOfDevices[i] = randomApplicationType;
 			
-			double poissonMean = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][2];
-			double activePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][3];
-			double idlePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomTaskType][4];
+			double poissonMean = SimSettings.getInstance().getApplicationLookUpTable()[randomApplicationType][2];
+			double activePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomApplicationType][3];
+			double idlePeriod = SimSettings.getInstance().getApplicationLookUpTable()[randomApplicationType][4];
 			double activePeriodStartTime = SimUtils.getRandomDoubleNumber(
 					SimSettings.CLIENT_ACTIVITY_START_TIME, 
 					SimSettings.CLIENT_ACTIVITY_START_TIME + activePeriod);  //active period starts shortly after the simulation started (e.g. 10 seconds)
@@ -108,53 +109,54 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 					continue;
 				}
 				
-				if (SimSettings.getInstance().isKernalBasedApplication(randomTaskType)) {
+				if (SimSettings.getInstance().isKernelBasedApplication(randomApplicationType)) {
 					// create an object of TaskBasedTask
-					int subtaskNum = SimSettings.getInstance().getKernelNum(randomTaskType);
+					// kernelNum is the number of kernels in the kernel-based application
+					int kernelNum = SimSettings.getInstance().getKernelNum(randomApplicationType);
 
-					int[][] dependency_task = SimSettings.getInstance().getKernelBasedApplicationDependency(randomTaskType);
+					// stores the kernel dependency graph
+					int[][] dependencyKernel = SimSettings.getInstance().getKernelBasedApplicationDependency(randomApplicationType);
 					
-					KernelBasedApplicationStatus.getInstance().addKernelBasedApplication(subtaskNum, taskBasedTaskId);
+					KernelBasedApplicationStatus.getInstance().addKernelBasedApplication(kernelNum, kernelBasedAppId);
 					
-					int[] id_subtask_list = new int[subtaskNum];
+					int[] kernelIdList = new int[kernelNum];
 					
-					for (int subTaskIndex=0; subTaskIndex<subtaskNum; subTaskIndex++) {
-						// map the subtask to TaskBasedTask
-						int subRandomTaskType = SimSettings.getInstance().getKernelIndex(randomTaskType, subTaskIndex);
-						KernelProperty taskProperty = new KernelProperty(i, subRandomTaskType, randomTaskType, virtualTime, subtaskExpRngList, taskPropertyId);
-						//int taskId = taskProperty.getCloud
-						int  taskListIndex = kernelPropertyList.size();
-						kernelId2KernelPropertyListIndex.put(taskPropertyId, taskListIndex);
-						kernelPropertyList.add(taskProperty);
-						id_subtask_list[subTaskIndex] = taskPropertyId;
-						taskPropertyId++;
+					for (int kernelIndex=0; kernelIndex<kernelNum; kernelIndex++) {
+						// generate and store the kernelPropertyList in this class
+						int kernelType = SimSettings.getInstance().getKernelIndex(randomApplicationType, kernelIndex);
+						KernelProperty kernelProperty = new KernelProperty(i, kernelType, randomApplicationType, virtualTime, kernelKBAPPExpRngList, kernelId);
+						int propertyListIndex = kernelPropertyList.size();
+						kernelId2KernelPropertyListIndex.put(kernelId, propertyListIndex);
+						kernelPropertyList.add(kernelProperty);
+						// store the index of kernels in this application in kernelPropertyList
+						kernelIdList[kernelIndex] = kernelId;
+						kernelId++;
 					}
 					
-					// add the taskPropertyId list
-					KernelBasedApplicationStatus.getInstance().addKernelIdList(id_subtask_list, taskBasedTaskId);
+					// add the kernelId list to the KernelBasedApplicationStatus
+					KernelBasedApplicationStatus.getInstance().addKernelIdList(kernelIdList, kernelBasedAppId);
 					// add the dependency
-					for (int id=0; id<dependency_task.length; id++) {
-						for (int id_dependency=0; id_dependency < dependency_task[id].length; id_dependency++)
-							if (dependency_task[id][id_dependency] ==  1) {
-								// pass id_subtask_list[id] because what we pass is the property_id, not the index
-								KernelBasedApplicationStatus.getInstance().addDependency(id_subtask_list[id], id_subtask_list[id_dependency], taskBasedTaskId);
+					for (int id=0; id<dependencyKernel.length; id++) {
+						for (int id_dependency=0; id_dependency < dependencyKernel[id].length; id_dependency++)
+							if (dependencyKernel[id][id_dependency] ==  1) {
+								KernelBasedApplicationStatus.getInstance().addDependency(kernelIdList[id], kernelIdList[id_dependency], kernelBasedAppId);
 							}
 					}
-					taskBasedTaskId++;
+					kernelBasedAppId++;
 					
 				}
 				else {
-					kernelPropertyList.add(new KernelProperty(i,randomTaskType, virtualTime, expRngList, taskPropertyId));
-					taskPropertyId++;
+					kernelPropertyList.add(new KernelProperty(i,randomApplicationType, virtualTime, expRngList, kernelId));
+					kernelId++;
 				}
 			}
 		}
 	}
 
 	@Override
-	public int getTaskTypeOfDevice(int deviceId) {
+	public int getApplicationTypeOfDevice(int deviceId) {
 		// TODO Auto-generated method stub
-		return taskTypeOfDevices[deviceId];
+		return applicationTypeOfDevices[deviceId];
 	}
 	
 	public int getKernelPropertyIndex(int kernelId) {

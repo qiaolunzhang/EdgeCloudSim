@@ -29,7 +29,7 @@ public class KernelBasedApplicationSettings {
 	}
 	
 	
-	public int getSubTaskNum() {
+	public int getKernelNum() {
 		return numKernel;
 	}
 

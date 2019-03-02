@@ -27,8 +27,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.javafx.image.impl.IntArgb;
-
 import edu.boun.edgecloudsim.utils.SimLogger;
 import edu.boun.edgecloudsim.utils.KernelBasedApplicationSettings;
 
@@ -508,7 +506,7 @@ public class SimSettings {
 		return applicationNames[applicationType];
 	}
 	
-	public boolean isKernalBasedApplication(int applicationType)
+	public boolean isKernelBasedApplication(int applicationType)
 	{
 		if (applicationTypeIndex[applicationType] >= 0) {
 			return true;
@@ -521,7 +519,7 @@ public class SimSettings {
 	public int getKernelNum(int applicationType) {
 		int kbbAppSettingsIndex = applicationTypeIndex[applicationType];
 		KernelBasedApplicationSettings kernelBasedApplicationSettings = kbAPPSettingsLookUpTable[kbbAppSettingsIndex];
-		return kernelBasedApplicationSettings.getSubTaskNum();
+		return kernelBasedApplicationSettings.getKernelNum();
 	}
 	
 	public int[][] getKernelBasedApplicationDependency(int applicationType) {
@@ -531,13 +529,19 @@ public class SimSettings {
 		return dependency;
 	}
 	
-	public double[] getsubTaskParameter(int taskType, int index) {
-		int dependencyLookUpTableIndex = applicationTypeIndex[taskType];
+	/*
+	 * get the parameters for kernels in kernel-based application
+	 */
+	public double[] getKernelParameter(int applicationType, int index) {
+		int dependencyLookUpTableIndex = applicationTypeIndex[applicationType];
 		KernelBasedApplicationSettings taskBasedApplication = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];
-		int subTaskIndex = taskBasedApplication.getKernelIndex(index);
-		return kernelInKernelBasedAPPLookUpTable[subTaskIndex];
+		int kernelIndex = taskBasedApplication.getKernelIndex(index);
+		return kernelInKernelBasedAPPLookUpTable[kernelIndex];
 	}
 
+	/*
+	 * return the index of the kernel in kbAPPSettingsLookUpTable
+	 */
 	public int getKernelIndex(int applicationType, int index) {
 		int dependencyLookUpTableIndex = applicationTypeIndex[applicationType];
 		KernelBasedApplicationSettings kbbAppSettings = kbAPPSettingsLookUpTable[dependencyLookUpTableIndex];

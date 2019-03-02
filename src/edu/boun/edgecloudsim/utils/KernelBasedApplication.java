@@ -11,8 +11,9 @@ public class KernelBasedApplication {
 	private boolean[] submitted;
 	// finished used to check if the task has ended
 	private boolean[] finished;
+	// store the final status of the execution of all kernels in the KernelBasedApplication
 	// -1: not tracked 0: finished 1: not finished 2: failed
-	private int kernelFinalStatus;
+	private int kbAPPFinalStatus;
 	/*
 	 * dependency[1][0] = 1 means kernel 1 can only be executed after on kernel 0 is ended
 	 * 	 0 1
@@ -38,7 +39,7 @@ public class KernelBasedApplication {
 		index2KernelId = new HashMap<Integer, Integer>();
 		submitted = new boolean[numKernel];
 		finished = new boolean[numKernel];
-		kernelFinalStatus = -1;
+		kbAPPFinalStatus = -1;
 		status_logged = false;
 		for (int i=0; i<numKernel; i++) {
 			submitted[i] = false; 
@@ -58,17 +59,16 @@ public class KernelBasedApplication {
 		}
 	}
 	
-	/*
-	/*
-	 * Add a dependency dependencyTaskId for task taskId
+	/**
+	 * Add a dependency kernel for a kernel
+	 * @param kernelId
+	 * @param dependencyKernelId
 	 */
-	public void addDependency(int id, int id_dependency) {
-		//int task_index = getTaskIndex(taskId);
-		//int dependency_index = getTaskIndex(dependencyTaskId);
-		int kernelIndexId = kernelId2Index.get(id);
-		int dependencyKernelId = kernelId2Index.get(id_dependency);
-		dependency[kernelIndexId][dependencyKernelId] = 1;
-		dependency_met[kernelIndexId][dependencyKernelId] = 0;
+	public void addDependency(int kernelId, int dependencyKernelId) {
+		int kernelIdIndex = kernelId2Index.get(kernelId);
+		int dependencyIdIndex = kernelId2Index.get(dependencyKernelId);
+		dependency[kernelIdIndex][dependencyIdIndex] = 1;
+		dependency_met[kernelIdIndex][dependencyIdIndex] = 0;
 	}
 	
 	
@@ -80,9 +80,9 @@ public class KernelBasedApplication {
 		
 	}
 	
-	/*
-	 * kernelId: the index in subtaskLookUpTable
-	 * remove dependency when a task finished
+	/**
+	 * remove dependency when a kernel finished
+	 * @param kernelId: the kernelId
 	 */
 	private void removeDependency(int kernelId) {
 		int kernelIndex = kernelId2Index.get(kernelId);
@@ -91,9 +91,11 @@ public class KernelBasedApplication {
 		}
 	}
 
-	/*
+	/**
 	 * return true: dependency has been met
 	 * return false: dependencies has not been met
+	 * @param index
+	 * @return true if the dependency of the kernel has been met
 	 */
 	private boolean checkDependency(int index) {
 		int task_index = index;
@@ -108,42 +110,35 @@ public class KernelBasedApplication {
 	}
 	
 
-	public List<Integer> getTaskToSubmit(int finishedTaskPropertyId) {
-		List<Integer> tasktoSubmit = new ArrayList<Integer>();
-		removeDependency(finishedTaskPropertyId);
-		// make sure we have set all the task to submitted
-		int index_submitted = kernelId2Index.get(finishedTaskPropertyId);
+	/**
+	 * Get kernels that can be executed when a kernel ends
+	 * @param finishedKernelId
+	 * @return
+	 */
+	public List<Integer> getKernelToSubmit(int finishedKernelId) {
+		List<Integer> kerneltoSubmit = new ArrayList<Integer>();
+		removeDependency(finishedKernelId);
+		int index_submitted = kernelId2Index.get(finishedKernelId);
 		submitted[index_submitted] = true;
 		finished[index_submitted] = true;
 		for (int index=0; index<numKernel; index++) {
-			// check if the dependencies has been met and whether the task has been submitted
+			// check if the dependencies has been met and whether the kernel has been submitted
+			// cannot submit a kernel if the kernel has been submitted
 			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(index2KernelId.get(index));
+				kerneltoSubmit.add(index2KernelId.get(index));
 				//submitted[index] = true; 
 			}
 		}
 		
-		return tasktoSubmit;
+		return kerneltoSubmit;
 	}
 	
-	public void setTaskSubmit(int taskPropertyId) {
-		//removeDependency(taskPropertyId);
-		int index_submitted = kernelId2Index.get(taskPropertyId);
+	public void setKernelSubmit(int kernelId) {
+		// we cannot remove the dependency to the kernel has kernelID because the kernel has not ended now
+		int index_submitted = kernelId2Index.get(kernelId);
 		submitted[index_submitted] = true;
 	}
 	
-	
-	public List<Integer> getInitialTaskToSubmit(){
-		List<Integer> tasktoSubmit = new ArrayList<>();
-		for (int index=0; index<numKernel; index++) {
-			// check whether dependencies has been met and whether the task has been submitted
-			if (checkDependency(index) && (submitted[index] == false)) {
-				tasktoSubmit.add(index2KernelId.get(index));
-				//submitted[index] = true; 
-			}
-		}
-		return tasktoSubmit;
-	}
 	
 	public boolean checkReadySubmit(int taskPropertyId) {
 		int taskIndex = kernelId2Index.get(taskPropertyId);
@@ -154,7 +149,12 @@ public class KernelBasedApplication {
 		}
 	}
 	
-	public boolean checkTaskBasedTaskEnd() {
+	/**
+	 * check whether the execution all the kernels in the KernelBasedApplication has end
+	 * but if the data have not been sent back to user devices, the application is not completed yet
+	 * @return true if all the kernels in the KernelBasedApplication has ended
+	 */
+	public boolean checkKernelBasedApplicationEnd() {
 		boolean flag = true;
 		for (int i=0; i<numKernel; i++) {
 			if (finished[i]== false) {
@@ -177,21 +177,26 @@ public class KernelBasedApplication {
 		}
 		if (flag_submit == false) {
 			// set as unfinished
-			kernelFinalStatus = 1;
+			kbAPPFinalStatus = 1;
 		} else if (flag_finished == true) {
 			// set as finished
-			kernelFinalStatus = 0;
+			kbAPPFinalStatus = 0;
 		}
 	}
 	
-	public void setTaskFinalStatus(int status) {
-		kernelFinalStatus = status;
+	public void setKBAPPFinalStatus(int status) {
+		kbAPPFinalStatus = status;
 	}
 	
-	public int getTaskFinalStatus() {
-		return kernelFinalStatus;
+	public int getKBAPPFinalStatus() {
+		return kbAPPFinalStatus;
 	}
 	
+	/**
+	 * In SimLogger, we will loop all the kernels to calculate the simulation data
+	 * To avoid log the same KernelBasedApplication multiple times, we will keep
+	 * a status_logged to stand for having calculated the data of this KernelBasedApplication
+	 */
 	public void setFinalStatusLogged() {
 		status_logged = true;
 	}
