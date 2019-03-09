@@ -568,7 +568,7 @@ public class SimSettings {
 		}
 	}
 	
-	private boolean isTaskBasedApplication(Element element, String key) {
+	private boolean isKernelBasedApplication(Element element, String key) {
 		boolean flag = false;
 		try {
 			String value = element.getElementsByTagName(key).item(0).getTextContent();
@@ -585,7 +585,7 @@ public class SimSettings {
 		return flag;
 	}
 	
-	private void addApplicationInfo(Element appElement, int taskIndex) {
+	private void addApplicationInfo(Element appElement, int appIndex) {
 		isAttribtuePresent(appElement, "name");
 		isElementPresent(appElement, "usage_percentage");
 		isElementPresent(appElement, "prob_cloud_selection");
@@ -594,14 +594,14 @@ public class SimSettings {
 		isElementPresent(appElement, "idle_period");
 		isElementPresent(appElement, "data_upload");
 		isElementPresent(appElement, "data_download");
-		isElementPresent(appElement, "task_length");
+		isElementPresent(appElement, "application_length");
 		isElementPresent(appElement, "required_core");
 		isElementPresent(appElement, "vm_utilization_on_edge");
 		isElementPresent(appElement, "vm_utilization_on_cloud");
 		isElementPresent(appElement, "vm_utilization_on_mobile");
 
-		String taskName = appElement.getAttribute("name");
-		applicationNames[taskIndex] = taskName;
+		String appName = appElement.getAttribute("name");
+		applicationNames[appIndex] = appName;
 				
 		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
 		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
@@ -610,56 +610,56 @@ public class SimSettings {
 		double idle_period = Double.parseDouble(appElement.getElementsByTagName("idle_period").item(0).getTextContent());
 		double data_upload = Double.parseDouble(appElement.getElementsByTagName("data_upload").item(0).getTextContent());
 		double data_download = Double.parseDouble(appElement.getElementsByTagName("data_download").item(0).getTextContent());
-		double task_length = Double.parseDouble(appElement.getElementsByTagName("task_length").item(0).getTextContent());
+		double application_length = Double.parseDouble(appElement.getElementsByTagName("application_length").item(0).getTextContent());
 		double required_core = Double.parseDouble(appElement.getElementsByTagName("required_core").item(0).getTextContent());
 		double vm_utilization_on_edge = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
 		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
 		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
 				
-		applicationLookUpTable[taskIndex][0] = usage_percentage; //usage percentage [0-100]
-		applicationLookUpTable[taskIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
-		applicationLookUpTable[taskIndex][2] = poisson_interarrival; //poisson mean (sec)
-		applicationLookUpTable[taskIndex][3] = active_period; //active period (sec)
-		applicationLookUpTable[taskIndex][4] = idle_period; //idle period (sec)
-		applicationLookUpTable[taskIndex][5] = data_upload; //avg data upload (KB)
-		applicationLookUpTable[taskIndex][6] = data_download; //avg data download (KB)
-		applicationLookUpTable[taskIndex][7] = task_length; //avg task length (MI)
-		applicationLookUpTable[taskIndex][8] = required_core; //required # of core
-		applicationLookUpTable[taskIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
-		applicationLookUpTable[taskIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
-		applicationLookUpTable[taskIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
+		applicationLookUpTable[appIndex][0] = usage_percentage; //usage percentage [0-100]
+		applicationLookUpTable[appIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
+		applicationLookUpTable[appIndex][2] = poisson_interarrival; //poisson mean (sec)
+		applicationLookUpTable[appIndex][3] = active_period; //active period (sec)
+		applicationLookUpTable[appIndex][4] = idle_period; //idle period (sec)
+		applicationLookUpTable[appIndex][5] = data_upload; //avg data upload (KB)
+		applicationLookUpTable[appIndex][6] = data_download; //avg data download (KB)
+		applicationLookUpTable[appIndex][7] = application_length; //avg task length (MI)
+		applicationLookUpTable[appIndex][8] = required_core; //required # of core
+		applicationLookUpTable[appIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
+		applicationLookUpTable[appIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
+		applicationLookUpTable[appIndex][11] = vm_utilization_on_mobile; //vm utilization on mobile vm [0-100]
 	}
 	
-	private void addKernelInfo(Element appElement, int kernelIndex) {
-		isAttribtuePresent(appElement, "name");
-		isElementPresent(appElement, "usage_percentage");
-		isElementPresent(appElement, "prob_cloud_selection");
-		isElementPresent(appElement, "poisson_interarrival");
-		isElementPresent(appElement, "active_period");
-		isElementPresent(appElement, "idle_period");
-		isElementPresent(appElement, "data_upload");
-		isElementPresent(appElement, "data_download");
-		isElementPresent(appElement, "task_length");
-		isElementPresent(appElement, "required_core");
-		isElementPresent(appElement, "vm_utilization_on_edge");
-		isElementPresent(appElement, "vm_utilization_on_cloud");
-		isElementPresent(appElement, "vm_utilization_on_mobile");
+	private void addKernelInfo(Element kernelElement, int kernelIndex) {
+		isAttribtuePresent(kernelElement, "name");
+		isElementPresent(kernelElement, "usage_percentage");
+		isElementPresent(kernelElement, "prob_cloud_selection");
+		isElementPresent(kernelElement, "poisson_interarrival");
+		isElementPresent(kernelElement, "active_period");
+		isElementPresent(kernelElement, "idle_period");
+		isElementPresent(kernelElement, "data_upload");
+		isElementPresent(kernelElement, "data_download");
+		isElementPresent(kernelElement, "kernel_length");
+		isElementPresent(kernelElement, "required_core");
+		isElementPresent(kernelElement, "vm_utilization_on_edge");
+		isElementPresent(kernelElement, "vm_utilization_on_cloud");
+		isElementPresent(kernelElement, "vm_utilization_on_mobile");
 
-		String taskName = appElement.getAttribute("name");
-		kernelNames[kernelIndex] = taskName;
+		String kernelName = kernelElement.getAttribute("name");
+		kernelNames[kernelIndex] = kernelName;
 				
-		double usage_percentage = Double.parseDouble(appElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
-		double prob_cloud_selection = Double.parseDouble(appElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
-		double poisson_interarrival = Double.parseDouble(appElement.getElementsByTagName("poisson_interarrival").item(0).getTextContent());
-		double active_period = Double.parseDouble(appElement.getElementsByTagName("active_period").item(0).getTextContent());
-		double idle_period = Double.parseDouble(appElement.getElementsByTagName("idle_period").item(0).getTextContent());
-		double data_upload = Double.parseDouble(appElement.getElementsByTagName("data_upload").item(0).getTextContent());
-		double data_download = Double.parseDouble(appElement.getElementsByTagName("data_download").item(0).getTextContent());
-		double task_length = Double.parseDouble(appElement.getElementsByTagName("task_length").item(0).getTextContent());
-		double required_core = Double.parseDouble(appElement.getElementsByTagName("required_core").item(0).getTextContent());
-		double vm_utilization_on_edge = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
-		double vm_utilization_on_cloud = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
-		double vm_utilization_on_mobile = Double.parseDouble(appElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
+		double usage_percentage = Double.parseDouble(kernelElement.getElementsByTagName("usage_percentage").item(0).getTextContent());
+		double prob_cloud_selection = Double.parseDouble(kernelElement.getElementsByTagName("prob_cloud_selection").item(0).getTextContent());
+		double poisson_interarrival = Double.parseDouble(kernelElement.getElementsByTagName("poisson_interarrival").item(0).getTextContent());
+		double active_period = Double.parseDouble(kernelElement.getElementsByTagName("active_period").item(0).getTextContent());
+		double idle_period = Double.parseDouble(kernelElement.getElementsByTagName("idle_period").item(0).getTextContent());
+		double data_upload = Double.parseDouble(kernelElement.getElementsByTagName("data_upload").item(0).getTextContent());
+		double data_download = Double.parseDouble(kernelElement.getElementsByTagName("data_download").item(0).getTextContent());
+		double kernel_length = Double.parseDouble(kernelElement.getElementsByTagName("kernel_length").item(0).getTextContent());
+		double required_core = Double.parseDouble(kernelElement.getElementsByTagName("required_core").item(0).getTextContent());
+		double vm_utilization_on_edge = Double.parseDouble(kernelElement.getElementsByTagName("vm_utilization_on_edge").item(0).getTextContent());
+		double vm_utilization_on_cloud = Double.parseDouble(kernelElement.getElementsByTagName("vm_utilization_on_cloud").item(0).getTextContent());
+		double vm_utilization_on_mobile = Double.parseDouble(kernelElement.getElementsByTagName("vm_utilization_on_mobile").item(0).getTextContent());
 				
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][0] = usage_percentage; //usage percentage [0-100]
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][1] = prob_cloud_selection; //prob. of selecting cloud [0-100]
@@ -668,7 +668,7 @@ public class SimSettings {
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][4] = idle_period; //idle period (sec)
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][5] = data_upload; //avg data upload (KB)
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][6] = data_download; //avg data download (KB)
-		kernelInKernelBasedAPPLookUpTable[kernelIndex][7] = task_length; //avg task length (MI)
+		kernelInKernelBasedAPPLookUpTable[kernelIndex][7] = kernel_length; //avg task length (MI)
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][8] = required_core; //required # of core
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][9] = vm_utilization_on_edge; //vm utilization on edge vm [0-100]
 		kernelInKernelBasedAPPLookUpTable[kernelIndex][10] = vm_utilization_on_cloud; //vm utilization on cloud vm [0-100]
@@ -707,64 +707,64 @@ public class SimSettings {
 			doc.getDocumentElement().normalize();
 			NodeList appList = doc.getElementsByTagName("application");
 
-			// get the number of taskBasedAppliation
-			int taskBasedAppCount = 0;
-			int subtaskCount = 0;
+			// get the number of kernelBasedAppliation
+			int kernelBasedAppCount = 0;
+			int kernelInKBAPPCount = 0;
 			for (int i = 0; i < appList.getLength(); i++) {
 				Node appNode = appList.item(i);
 				Element appElement = (Element) appNode; 
 
-				if (isTaskBasedApplication(appElement, "sub_applications")) {
-					taskBasedAppCount++;
-					NodeList subappList = appElement.getElementsByTagName("sub_application");
+				if (isKernelBasedApplication(appElement, "kernels")) {
+					kernelBasedAppCount++;
+					NodeList subappList = appElement.getElementsByTagName("kernel");
 					int subapp_cnt = subappList.getLength();
-					subtaskCount = subtaskCount + subapp_cnt;
+					kernelInKBAPPCount = kernelInKBAPPCount + subapp_cnt;
 				}
 			}
 
 			applicationLookUpTable = new double[appList.getLength()][13];
-			kernelInKernelBasedAPPLookUpTable = new double[subtaskCount][13];
+			kernelInKernelBasedAPPLookUpTable = new double[kernelInKBAPPCount][13];
 			applicationNames = new String[appList.getLength()];
-			kernelNames = new String[subtaskCount];
+			kernelNames = new String[kernelInKBAPPCount];
 			applicationTypeIndex = new int[appList.getLength()]; 
 
-			kbAPPSettingsLookUpTable = new KernelBasedApplicationSettings[taskBasedAppCount]; 
+			kbAPPSettingsLookUpTable = new KernelBasedApplicationSettings[kernelBasedAppCount]; 
 
 
-			int taskIndex = 0;
-			int subtaskIndex = 0;
+			int appIndex = 0;
+			int kernelBasedAppIndex = 0;
 			int dependencyLookUpTableIndex = 0;
 			for (int i = 0; i < appList.getLength(); i++) {
 				Node appNode = appList.item(i);
 	
 				Element appElement = (Element) appNode;
-				addApplicationInfo(appElement, taskIndex);
+				addApplicationInfo(appElement, appIndex);
 
-				if (isTaskBasedApplication(appElement, "sub_applications")) {
+				if (isKernelBasedApplication(appElement, "kernels")) {
 					// update subTaskLookUpTable
-					applicationTypeIndex[taskIndex] = dependencyLookUpTableIndex; 
-					// get the sub_applications Element
-					NodeList subappList = appElement.getElementsByTagName("sub_application");
+					applicationTypeIndex[appIndex] = dependencyLookUpTableIndex; 
+					// get the kernels Element
+					NodeList subappList = appElement.getElementsByTagName("kernel");
 					int subapp_cnt = subappList.getLength();
 
-					kbAPPSettingsLookUpTable[dependencyLookUpTableIndex] = new KernelBasedApplicationSettings(subapp_cnt, subtaskIndex);
+					kbAPPSettingsLookUpTable[dependencyLookUpTableIndex] = new KernelBasedApplicationSettings(subapp_cnt, kernelBasedAppIndex);
 					
-					// add task
+					// add kernel info
 					for (int j=0; j<subappList.getLength(); j++) {
 						Node subAppNode = subappList.item(j);
 						Element subAppelement = (Element) subAppNode;
-						addKernelInfo(subAppelement, subtaskIndex);
-						addDependency(subAppelement, taskIndex, j);
-						subtaskIndex++;
+						addKernelInfo(subAppelement, kernelBasedAppIndex);
+						addDependency(subAppelement, appIndex, j);
+						kernelBasedAppIndex++;
 					}
 
 					dependencyLookUpTableIndex++;
 				}
 				else {
-					applicationTypeIndex[taskIndex] = -1; 
+					applicationTypeIndex[appIndex] = -1; 
 				}
 
-		    	taskIndex++;
+		    	appIndex++;
 			}
 	
 		} catch (Exception e) {

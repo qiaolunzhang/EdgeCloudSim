@@ -165,24 +165,25 @@ public class KernelBasedApplication {
 	}
 	
 	public void checkAllSubmittedAndSetStatus() {
-		boolean flag_submit = true;
+		// -1: not tracked 0: finished 1: not finished 2: failed
+		//boolean flag_submit = true;
 		boolean flag_finished = true;
 		for (int i=0; i<numKernel; i++) {
+			/*
 			if (submitted[i]== false) {
 				flag_submit = false;
 			}
+			*/
 			if (finished[i] == false) {
 				flag_finished = false;
 			}
 		}
-		if (flag_submit == false) {
-			// set as unfinished
-			kbAPPFinalStatus = 1;
-		} else if (flag_finished == true) {
-			// set as finished
+		if (flag_finished == true) {
 			kbAPPFinalStatus = 0;
+		} else {
+			kbAPPFinalStatus = 1;
 		}
-	}
+}
 	
 	public void setKBAPPFinalStatus(int status) {
 		kbAPPFinalStatus = status;

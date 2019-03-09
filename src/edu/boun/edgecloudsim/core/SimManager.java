@@ -34,12 +34,12 @@ import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
 public class SimManager extends SimEntity {
-	private static final int CREATE_TASK = 0;
+	private static final int CREATE_KERNEL_IN_ATOMIC = 0;
 	private static final int CHECK_ALL_VM = 1;
 	private static final int GET_LOAD_LOG = 2;
 	private static final int PRINT_PROGRESS = 3;
 	private static final int STOP_SIMULATION = 4;
-	private static final int CREATE_KERNEL = 5;
+	private static final int CREATE_KERNEL_IN_KBAPP = 5;
 	
 	private String simScenario;
 	private String orchestratorPolicy;
@@ -199,20 +199,20 @@ public class SimManager extends SimEntity {
 		// log the SimManagerId to TaskBasedTaskStatus.java
 		KernelBasedApplicationStatus.getInstance().setSimManagerId(getId());
 		
-		//Creation of tasks are scheduled here!
+		//Creation of applications are scheduled here!
 		for(int i=0; i< loadGeneratorModel.getKernelPropertyList().size(); i++) {
-			int taskPropertyId = loadGeneratorModel.getKernelPropertyList().get(i).getTaskPropertyId();
-			if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
+			int taskPropertyId = loadGeneratorModel.getKernelPropertyList().get(i).getKernelId();
+			if (KernelBasedApplicationStatus.getInstance().checkKernelInKBApp(taskPropertyId)) {
 				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(taskPropertyId);
 				if (ready_to_submit) {
-					schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getKernelPropertyList().get(i));
+					schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL_IN_ATOMIC, loadGeneratorModel.getKernelPropertyList().get(i));
 					//TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
 					// cannot set the sub-task as submitted here, otherwise, all the task will be submitted
-					KernelBasedApplicationStatus.getInstance().setTaskSubmit(taskPropertyId);
+					KernelBasedApplicationStatus.getInstance().setKernelSubmit(taskPropertyId);
 				}
 			}
 			else {
-				schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_TASK, loadGeneratorModel.getKernelPropertyList().get(i));
+				schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL_IN_ATOMIC, loadGeneratorModel.getKernelPropertyList().get(i));
 			}
 		}
 		
@@ -229,7 +229,7 @@ public class SimManager extends SimEntity {
 	public void processEvent(SimEvent ev) {
 		synchronized(this){
 			switch (ev.getTag()) {
-			case CREATE_TASK:
+			case CREATE_KERNEL_IN_ATOMIC:
 				try {
 					KernelProperty edgeTask = (KernelProperty) ev.getData();
 					mobileDeviceManager.submitKernel(edgeTask);						
@@ -274,19 +274,14 @@ public class SimManager extends SimEntity {
 					System.exit(0);
 				}
 				break;
-			case CREATE_KERNEL:
+			case CREATE_KERNEL_IN_KBAPP:
 				int kernelId = (int) ev.getData();
-				//System.out.println("receive instruction to create new sub-task: " + taskPropertyId);
-				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(kernelId);
-				if (ready_to_submit) {
-					//System.out.println("this kernel in kernel-based application is ready to submit");
-				}
+				//boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(kernelId);
+				//get the kernel list index in load generator
 				int kernelPropertyIndex = loadGeneratorModel.getKernelPropertyIndex(kernelId);
-				//System.out.println("the task list index is: " + taskListIndex);
 				KernelProperty kernelProperty = loadGeneratorModel.getKernelPropertyList().get(kernelPropertyIndex);
-				//TODO make sure if we need to modify the starttime here
 				mobileDeviceManager.submitKernel(kernelProperty);
-				KernelBasedApplicationStatus.getInstance().setTaskSubmit(kernelId);
+				KernelBasedApplicationStatus.getInstance().setKernelSubmit(kernelId);
 			default:
 				Log.printLine(getName() + ": unknown event type");
 				break;

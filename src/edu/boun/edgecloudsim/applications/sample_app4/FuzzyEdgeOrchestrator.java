@@ -140,7 +140,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 					bestHostUtilization = bestRemoteEdgeUtilization;
 				}
 				
-				double delay_sensitivity = SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][12];
+				double delay_sensitivity = SimSettings.getInstance().getApplicationLookUpTable()[task.getKernelType()][12];
 
 		        // Set inputs
 		        fis1.setVariable("wan_bw", wanBW);
@@ -171,7 +171,7 @@ public class FuzzyEdgeOrchestrator extends EdgeOrchestrator {
 			else if(policy.equals("FUZZY_COMPETITOR")){
 				double utilization = edgeUtilization;
 	        	double cpuSpeed = (double)100 - utilization;
-	        	double videoExecution = SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][12];
+	        	double videoExecution = SimSettings.getInstance().getApplicationLookUpTable()[task.getKernelType()][12];
 	        	double dataSize = task.getCloudletFileSize() + task.getCloudletOutputSize();
 	        	double normalizedDataSize = Math.min(MAX_DATA_SIZE, dataSize)/MAX_DATA_SIZE;
 	        	

@@ -8,6 +8,7 @@ public class KernelBasedApplicationStatus {
 	
 
 	private static KernelBasedApplicationStatus instance = null;
+	// used when we want to add an event to SimManager
 	private int simManagerId;
 	private int numKernelBasedApplication;
 	private Map<Integer, KernelBasedApplication> kernelBasedApplicationMap;
@@ -42,53 +43,89 @@ public class KernelBasedApplicationStatus {
 		kernelBasedApplicationMap.get(kernelBasedApplicationId).addKernelIdList(kernelIdList);
 	}
 	
-	public void addDependency(int id, int id_dependency, int taskBasedTaskId) {
-		kernelBasedApplicationMap.get(taskBasedTaskId).addDependency(id, id_dependency);
+	public void addDependency(int id, int id_dependency, int kernelBasedAppId) {
+		kernelBasedApplicationMap.get(kernelBasedAppId).addDependency(id, id_dependency);
 	}
 	
-	public boolean checkReadySubmit(int taskPropertyId) {
-		//taskBasedTaskMap.get(task)
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkReadySubmit(taskPropertyId);
+	/**
+	 * check whether a kernel in kernel-based application can be submitted(dependency)
+	 * @param kernelId
+	 * @return
+	 */
+	public boolean checkReadySubmit(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		boolean result = kernelBasedApplicationMap.get(kernelBasedAppId).checkReadySubmit(kernelId);
 		return result;
 	}
 	
-	public List<Integer> getTaskSubmit(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		List<Integer> newTaskList = kernelBasedApplicationMap.get(taskBasedTaskId).getKernelToSubmit(taskPropertyId);
-		return newTaskList;
+	/**
+	 * input a kernel that has ended, and get kernels that can be submitted now
+	 *  @param kernelId
+	 * @return
+	 */
+	public List<Integer> getKernelSubmit(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		List<Integer> kernelListReadySubmit = kernelBasedApplicationMap.get(kernelBasedAppId).getKernelToSubmit(kernelId);
+		return kernelListReadySubmit;
 	}
 	
-	public void setTaskSubmit(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		kernelBasedApplicationMap.get(taskBasedTaskId).setKernelSubmit(taskPropertyId);
+	/**
+	 * set a kernel as submitted
+	 * @param kernelId
+	 */
+	public void setKernelSubmit(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		kernelBasedApplicationMap.get(kernelBasedAppId).setKernelSubmit(kernelId);
 	}
 	
-	public boolean checkTaskBasedTaskEnd(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		boolean result = kernelBasedApplicationMap.get(taskBasedTaskId).checkKernelBasedApplicationEnd();
+	/**
+	 * input a kernel id, check whether the corresponding kernel-based application has ended
+	 * @param kernelId
+	 * @return
+	 */
+	public boolean checkKernelBasedAppEnd(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		boolean result = kernelBasedApplicationMap.get(kernelBasedAppId).checkKernelBasedApplicationEnd();
 		return result;
 	}
 	
-	public void setTaskBasedTaskFinalStatus(int taskPropertyId, int status) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		kernelBasedApplicationMap.get(taskBasedTaskId).setKBAPPFinalStatus(status);
+	/**
+	 * set the status(e.g. finished, uncompleted) for the kernel-based application 
+	 * that contains the kernel with kernel ID
+	 * @param kernelId
+	 * @param status
+	 */
+	public void setKernelBasedAppFinalStatus(int kernelId, int status) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		kernelBasedApplicationMap.get(kernelBasedAppId).setKBAPPFinalStatus(status);
 	}
 	
-	public int getTaskBasedTaskFinalStatus(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		int status = kernelBasedApplicationMap.get(taskBasedTaskId).getKBAPPFinalStatus();
+	/**
+	 * get the final status of the kernel-based application that contains the
+	 * kernel with kernel ID
+	 * @param kernelId
+	 * @return
+	 */
+	public int getKernelBasedAppFinalStatus(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		int status = kernelBasedApplicationMap.get(kernelBasedAppId).getKBAPPFinalStatus();
 		return status;
 	}
 	
-	public void setFinalStatusLogged(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		kernelBasedApplicationMap.get(taskBasedTaskId).setFinalStatusLogged();
+	
+	/**
+	 * once the status of kernel-based application has been logged by SimLogger,
+	 * use this function to set the kernel-based application as logged
+	 * @param kernelId
+	 */
+	public void setFinalStatusLogged(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		kernelBasedApplicationMap.get(kernelBasedAppId).setFinalStatusLogged();
 	}
 	
-	public boolean checkFinalStatusLogged(int taskPropertyId) {
-		int taskBasedTaskId = mKeyMap.get(taskPropertyId);
-		return kernelBasedApplicationMap.get(taskBasedTaskId).checkStatusUnLogged();
+	public boolean checkFinalStatusLogged(int kernelId) {
+		int kernelBasedAppId = mKeyMap.get(kernelId);
+		return kernelBasedApplicationMap.get(kernelBasedAppId).checkStatusUnLogged();
 	}
 	
 
@@ -99,8 +136,8 @@ public class KernelBasedApplicationStatus {
 	}
 
 	
-	public boolean checkSubTask(int taskPropertyId) {
-		boolean exist = mKeyMap.containsKey(taskPropertyId);
+	public boolean checkKernelInKBApp(int kernelId) {
+		boolean exist = mKeyMap.containsKey(kernelId);
 		return exist;
 	}
 	

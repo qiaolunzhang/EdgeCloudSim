@@ -90,7 +90,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		Kernel task = (Kernel) ev.getData();
 		
-		SimLogger.getInstance().taskExecuted(task.getCloudletId());
+		SimLogger.getInstance().kernelExecuted(task.getCloudletId());
 
 		if(task.getAssociatedDatacenterId() == SimSettings.CLOUD_DATACENTER_ID){
 			//SimLogger.printLine(CloudSim.clock() + ": " + getName() + ": task #" + task.getCloudletId() + " received from cloud");
@@ -257,7 +257,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 				else if(task.getAssociatedDatacenterId() != SimSettings.MOBILE_DATACENTER_ID)
 					networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				
-				SimLogger.getInstance().taskEnded(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelEnded(task.getCloudletId(), CloudSim.clock());
 				break;
 			}
 			default:
@@ -287,11 +287,11 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 
 		//add related task to log list
 		SimLogger.getInstance().addLog(task.getCloudletId(),
-				task.getTaskType(),
+				task.getKernelType(),
 				(int)task.getCloudletLength(),
 				(int)task.getCloudletFileSize(),
 				(int)task.getCloudletOutputSize(),
-				(int)task.getTaskPropertyId());
+				(int)task.getKernelId());
 
 		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
 		
@@ -338,7 +338,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 				}
 				networkModel.uploadStarted(currentLocation, nextDeviceForNetworkModel);
 				
-				SimLogger.getInstance().taskStarted(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
 				SimLogger.getInstance().setUploadDelay(task.getCloudletId(), delay, delayType);
 
 				schedule(getId(), delay, nextEvent, task);
@@ -359,7 +359,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		//SimLogger.printLine(CloudSim.clock() + ": Cloudlet#" + task.getCloudletId() + " is submitted to VM#" + task.getVmId());
 		schedule(getVmsToDatacentersMap().get(task.getVmId()), 0, CloudSimTags.CLOUDLET_SUBMIT, task);
 
-		SimLogger.getInstance().taskAssigned(task.getCloudletId(),
+		SimLogger.getInstance().kernelAssigned(task.getCloudletId(),
 				task.getAssociatedDatacenterId(),
 				task.getAssociatedHostId(),
 				task.getAssociatedVmId(),
@@ -377,7 +377,7 @@ public class FuzzyMobileDeviceManager extends MobileDeviceManager {
 		
 		//set the owner of this task
 		task.setUserId(this.getId());
-		task.setTaskType(edgeTask.getTaskType());
+		task.setKernelType(edgeTask.getApplicationType());
 		
 		if (utilizationModelCPU instanceof CpuUtilizationModel_Custom) {
 			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(task);

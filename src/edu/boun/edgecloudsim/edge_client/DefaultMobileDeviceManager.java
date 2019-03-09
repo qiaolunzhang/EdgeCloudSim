@@ -39,15 +39,11 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 	private static final int REQUEST_RECIVED_BY_EDGE_DEVICE = BASE + 2;
 	private static final int RESPONSE_RECEIVED_BY_MOBILE_DEVICE = BASE + 3;
 	private int taskIdCounter=0;
-	private MobileDeviceManager mobileDeviceManager;
 	
 	
 	public DefaultMobileDeviceManager() throws Exception{
 	}
 
-	public void setMobileDeviceManager(MobileDeviceManager _mMobileDeviceManager) {
-		mobileDeviceManager = _mMobileDeviceManager;
-	}
 
 	@Override
 	public void initialize() {
@@ -77,73 +73,71 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 	 */
 	protected void processCloudletReturn(SimEvent ev) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
-		Kernel task = (Kernel) ev.getData();
-		//System.out.println(task.getTaskPropertyId());
-		// schedule new task
-		int taskPropertyId = task.getTaskPropertyId();
-		//System.out.println(taskPropertyId);
-		if (KernelBasedApplicationStatus.getInstance().checkSubTask(taskPropertyId)) {
+		Kernel kernel = (Kernel) ev.getData();
+
+		int kernelId = kernel.getKernelId();
+		if (KernelBasedApplicationStatus.getInstance().checkKernelInKBApp(kernelId)) {
 			int simManagerId = KernelBasedApplicationStatus.getInstance().getSimManagerId();
-			// in the meanwhile set the task as finished 
-			// we can only set the task submitted here
-			List<Integer> subTask_ready = KernelBasedApplicationStatus.getInstance().getTaskSubmit(taskPropertyId);
-			for (int i=0; i<subTask_ready.size(); i++) {
-				scheduleNow(simManagerId, 5, subTask_ready.get(i));
-				//System.out.println("Submitting a sub task: " + subTask_ready.get(i));
+			// in the meanwhile set the kernel as finished 
+			List<Integer> kernelListReadySubmit = KernelBasedApplicationStatus.getInstance().getKernelSubmit(kernelId);
+			for (int i=0; i<kernelListReadySubmit.size(); i++) {
+				// send the event to SimManager
+				scheduleNow(simManagerId, 5, kernelListReadySubmit.get(i));
 			}
-			//scheduleNow(simManagerId, 5, subTask_ready);
 			
-			// check if the task-based task has ended
-			boolean ended_flag = KernelBasedApplicationStatus.getInstance().checkTaskBasedTaskEnd(taskPropertyId);
+			/*
+			// check if the kernel-based application has ended
+			boolean ended_flag = KernelBasedApplicationStatus.getInstance().checkKernelBasedAppEnd(kernelId);
 			if (ended_flag) {
-				//System.out.println("a new task-based task has ended");
+				//System.out.println("a new kernel in kernel-based application has ended");
 			}
+			*/
 		}
 		
-		SimLogger.getInstance().taskExecuted(task.getCloudletId());
+		SimLogger.getInstance().kernelExecuted(kernel.getCloudletId());
 
-		if(task.getAssociatedDatacenterId() == SimSettings.CLOUD_DATACENTER_ID){
+		if(kernel.getAssociatedDatacenterId() == SimSettings.CLOUD_DATACENTER_ID){
 			//SimLogger.printLine(CloudSim.clock() + ": " + getName() + ": task #" + task.getCloudletId() + " received from cloud");
-			double WanDelay = networkModel.getDownloadDelay(SimSettings.CLOUD_DATACENTER_ID, task.getMobileDeviceId(), task);
+			double WanDelay = networkModel.getDownloadDelay(SimSettings.CLOUD_DATACENTER_ID, kernel.getMobileDeviceId(), kernel);
 			if(WanDelay > 0)
 			{
-				Location currentLocation = SimManager.getInstance().getMobilityModel().getLocation(task.getMobileDeviceId(),CloudSim.clock()+WanDelay);
-				if(task.getSubmittedLocation().getServingWlanId() == currentLocation.getServingWlanId())
+				Location currentLocation = SimManager.getInstance().getMobilityModel().getLocation(kernel.getMobileDeviceId(),CloudSim.clock()+WanDelay);
+				if(kernel.getSubmittedLocation().getServingWlanId() == currentLocation.getServingWlanId())
 				{
-					networkModel.downloadStarted(task.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
-					SimLogger.getInstance().setDownloadDelay(task.getCloudletId(), WanDelay, NETWORK_DELAY_TYPES.WAN_DELAY);
-					schedule(getId(), WanDelay, RESPONSE_RECEIVED_BY_MOBILE_DEVICE, task);
+					networkModel.downloadStarted(kernel.getSubmittedLocation(), SimSettings.CLOUD_DATACENTER_ID);
+					SimLogger.getInstance().setDownloadDelay(kernel.getCloudletId(), WanDelay, NETWORK_DELAY_TYPES.WAN_DELAY);
+					schedule(getId(), WanDelay, RESPONSE_RECEIVED_BY_MOBILE_DEVICE, kernel);
 				}
 				else
 				{
-					SimLogger.getInstance().failedDueToMobility(task.getCloudletId(), CloudSim.clock());
+					SimLogger.getInstance().failedDueToMobility(kernel.getCloudletId(), CloudSim.clock());
 				}
 			}
 			else
 			{
-				SimLogger.getInstance().failedDueToBandwidth(task.getCloudletId(), CloudSim.clock(), NETWORK_DELAY_TYPES.WAN_DELAY);
+				SimLogger.getInstance().failedDueToBandwidth(kernel.getCloudletId(), CloudSim.clock(), NETWORK_DELAY_TYPES.WAN_DELAY);
 			}
 		}
 		else{
 			//SimLogger.printLine(CloudSim.clock() + ": " + getName() + ": task #" + task.getCloudletId() + " received from edge");
-			double WlanDelay = networkModel.getDownloadDelay(task.getAssociatedHostId(), task.getMobileDeviceId(), task);
+			double WlanDelay = networkModel.getDownloadDelay(kernel.getAssociatedHostId(), kernel.getMobileDeviceId(), kernel);
 			if(WlanDelay > 0)
 			{
-				Location currentLocation = SimManager.getInstance().getMobilityModel().getLocation(task.getMobileDeviceId(),CloudSim.clock()+WlanDelay);
-				if(task.getSubmittedLocation().getServingWlanId() == currentLocation.getServingWlanId())
+				Location currentLocation = SimManager.getInstance().getMobilityModel().getLocation(kernel.getMobileDeviceId(),CloudSim.clock()+WlanDelay);
+				if(kernel.getSubmittedLocation().getServingWlanId() == currentLocation.getServingWlanId())
 				{
 					networkModel.downloadStarted(currentLocation, SimSettings.GENERIC_EDGE_DEVICE_ID);
-					SimLogger.getInstance().setDownloadDelay(task.getCloudletId(), WlanDelay, NETWORK_DELAY_TYPES.WLAN_DELAY);
-					schedule(getId(), WlanDelay, RESPONSE_RECEIVED_BY_MOBILE_DEVICE, task);
+					SimLogger.getInstance().setDownloadDelay(kernel.getCloudletId(), WlanDelay, NETWORK_DELAY_TYPES.WLAN_DELAY);
+					schedule(getId(), WlanDelay, RESPONSE_RECEIVED_BY_MOBILE_DEVICE, kernel);
 				}
 				else
 				{
-					SimLogger.getInstance().failedDueToMobility(task.getCloudletId(), CloudSim.clock());
+					SimLogger.getInstance().failedDueToMobility(kernel.getCloudletId(), CloudSim.clock());
 				}
 			}
 			else
 			{
-				SimLogger.getInstance().failedDueToBandwidth(task.getCloudletId(), CloudSim.clock(), NETWORK_DELAY_TYPES.WLAN_DELAY);
+				SimLogger.getInstance().failedDueToBandwidth(kernel.getCloudletId(), CloudSim.clock(), NETWORK_DELAY_TYPES.WLAN_DELAY);
 			}
 		}
 	}
@@ -187,7 +181,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 				else if(task.getAssociatedDatacenterId() != SimSettings.MOBILE_DATACENTER_ID)
 					networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				
-				SimLogger.getInstance().taskEnded(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelEnded(task.getCloudletId(), CloudSim.clock());
 				break;
 			}
 			default:
@@ -211,11 +205,11 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 
 		//add related task to log list
 		SimLogger.getInstance().addLog(task.getCloudletId(),
-				task.getTaskType(),
+				task.getKernelType(),
 				(int)task.getCloudletLength(),
 				(int)task.getCloudletFileSize(),
 				(int)task.getCloudletOutputSize(),
-				(int)task.getTaskPropertyId());
+				(int)task.getKernelId());
 
 		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
 		
@@ -224,7 +218,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			
 			if(WanDelay>0){
 				networkModel.uploadStarted(currentLocation, nextHopId);
-				SimLogger.getInstance().taskStarted(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
 				SimLogger.getInstance().setUploadDelay(task.getCloudletId(), WanDelay, NETWORK_DELAY_TYPES.WAN_DELAY);
 				schedule(getId(), WanDelay, REQUEST_RECEIVED_BY_CLOUD, task);
 			}
@@ -244,7 +238,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			if(WlanDelay > 0){
 				networkModel.uploadStarted(currentLocation, nextHopId);
 				schedule(getId(), WlanDelay, REQUEST_RECIVED_BY_EDGE_DEVICE, task);
-				SimLogger.getInstance().taskStarted(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
 				SimLogger.getInstance().setUploadDelay(task.getCloudletId(), WlanDelay, NETWORK_DELAY_TYPES.WLAN_DELAY);
 			}
 			else {
@@ -290,7 +284,7 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 			//SimLogger.printLine(CloudSim.clock() + ": Cloudlet#" + task.getCloudletId() + " is submitted to VM#" + task.getVmId());
 			schedule(getVmsToDatacentersMap().get(task.getVmId()), delay, CloudSimTags.CLOUDLET_SUBMIT, task);
 
-			SimLogger.getInstance().taskAssigned(task.getCloudletId(),
+			SimLogger.getInstance().kernelAssigned(task.getCloudletId(),
 					selectedVM.getHost().getDatacenter().getId(),
 					selectedVM.getHost().getId(),
 					selectedVM.getId(),
@@ -313,8 +307,8 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		
 		//set the owner of this task
 		task.setUserId(this.getId());
-		task.setTaskType(edgeTask.getTaskType());
-		task.setTaskPropertyId(edgeTask.getTaskPropertyId());
+		task.setKernelType(edgeTask.getApplicationType());
+		task.setKernelId(edgeTask.getKernelId());
 		
 		if (utilizationModelCPU instanceof CpuUtilizationModel_Custom) {
 			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(task);

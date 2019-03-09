@@ -39,7 +39,7 @@ public class CpuUtilizationModel_Custom implements UtilizationModel {
 		else if(task.getAssociatedDatacenterId() == SimSettings.MOBILE_DATACENTER_ID)
 			index = 11;
 
-		return SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][index];
+		return SimSettings.getInstance().getApplicationLookUpTable()[task.getKernelType()][index];
 	}
 	
 	public void setTask(Kernel _task){
@@ -58,6 +58,6 @@ public class CpuUtilizationModel_Custom implements UtilizationModel {
 			SimLogger.printLine("Unknown VM Type! Terminating simulation...");
 			System.exit(0);
 		}
-		return SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][index];
+		return SimSettings.getInstance().getApplicationLookUpTable()[task.getKernelType()][index];
 	}
 }

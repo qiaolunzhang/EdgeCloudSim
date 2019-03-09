@@ -87,7 +87,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		Kernel task = (Kernel) ev.getData();
 		
-		SimLogger.getInstance().taskExecuted(task.getCloudletId());
+		SimLogger.getInstance().kernelExecuted(task.getCloudletId());
 
 		if(task.getAssociatedDatacenterId() == SimSettings.GENERIC_EDGE_DEVICE_ID){
 			double delay = networkModel.getDownloadDelay(task.getAssociatedDatacenterId(), task.getMobileDeviceId(), task);
@@ -113,7 +113,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 			}
 		}
 		else if(task.getAssociatedDatacenterId() == SimSettings.MOBILE_DATACENTER_ID) {
-			SimLogger.getInstance().taskEnded(task.getCloudletId(), CloudSim.clock());
+			SimLogger.getInstance().kernelEnded(task.getCloudletId(), CloudSim.clock());
 			
 			/*
 			 * TODO: In this scenario device to device (D2D) communication is ignored.
@@ -162,7 +162,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 				
 				networkModel.downloadFinished(task.getSubmittedLocation(), SimSettings.GENERIC_EDGE_DEVICE_ID);
 				
-				SimLogger.getInstance().taskEnded(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelEnded(task.getCloudletId(), CloudSim.clock());
 				break;
 			}
 			default:
@@ -192,11 +192,11 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 
 		//add related task to log list
 		SimLogger.getInstance().addLog(task.getCloudletId(),
-				task.getTaskType(),
+				task.getKernelType(),
 				(int)task.getCloudletLength(),
 				(int)task.getCloudletFileSize(),
 				(int)task.getCloudletOutputSize(),
-				(int)task.getTaskPropertyId());
+				(int)task.getKernelId());
 
 		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
 		
@@ -246,7 +246,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 				getCloudletList().add(task);
 				bindCloudletToVm(task.getCloudletId(), selectedVM.getId());
 
-				SimLogger.getInstance().taskStarted(task.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
 				
 				if(nextHopId != SimSettings.MOBILE_DATACENTER_ID) {
 					networkModel.uploadStarted(task.getSubmittedLocation(), nextDeviceForNetworkModel);
@@ -271,7 +271,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 		//SimLogger.printLine(CloudSim.clock() + ": Cloudlet#" + task.getCloudletId() + " is submitted to VM#" + task.getVmId());
 		schedule(getVmsToDatacentersMap().get(task.getVmId()), 0, CloudSimTags.CLOUDLET_SUBMIT, task);
 
-		SimLogger.getInstance().taskAssigned(task.getCloudletId(),
+		SimLogger.getInstance().kernelAssigned(task.getCloudletId(),
 				task.getAssociatedDatacenterId(),
 				task.getAssociatedHostId(),
 				task.getAssociatedVmId(),
@@ -289,7 +289,7 @@ public class SampleMobileDeviceManager extends MobileDeviceManager {
 		
 		//set the owner of this task
 		task.setUserId(this.getId());
-		task.setTaskType(edgeTask.getTaskType());
+		task.setKernelType(edgeTask.getApplicationType());
 		
 		if (utilizationModelCPU instanceof CpuUtilizationModel_Custom) {
 			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(task);

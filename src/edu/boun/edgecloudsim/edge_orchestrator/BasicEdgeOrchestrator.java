@@ -54,7 +54,7 @@ public class BasicEdgeOrchestrator extends EdgeOrchestrator {
 			//decide to use cloud or Edge VM
 			int CloudVmPicker = SimUtils.getRandomNumber(0, 100);
 			
-			if(CloudVmPicker <= SimSettings.getInstance().getApplicationLookUpTable()[task.getTaskType()][1])
+			if(CloudVmPicker <= SimSettings.getInstance().getApplicationLookUpTable()[task.getKernelType()][1])
 				result = SimSettings.CLOUD_DATACENTER_ID;
 			else
 				result = SimSettings.GENERIC_EDGE_DEVICE_ID;

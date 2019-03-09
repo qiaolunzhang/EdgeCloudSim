@@ -23,7 +23,7 @@ public class Kernel extends Cloudlet {
 	private int hostIndex;
 	private int vmIndex;
 	private int datacenterId;
-	private int taskPropertyId;
+	private int kernelId;
 
 	public Kernel(int _mobileDeviceId, int cloudletId, long cloudletLength, int pesNumber,
 			long cloudletFileSize, long cloudletOutputSize,
@@ -35,7 +35,7 @@ public class Kernel extends Cloudlet {
 				utilizationModelBw);
 		
 		mobileDeviceId = _mobileDeviceId;
-		taskPropertyId = -1;
+		kernelId = -1;
 	}
 
 	
@@ -55,12 +55,12 @@ public class Kernel extends Cloudlet {
 		vmIndex=_vmIndex;
 	}
 	
-	public void setTaskType(int _type){
+	public void setKernelType(int _type){
 		type=_type;
 	}
 	
-	public void setTaskPropertyId(int _taskPropertyId) {
-		taskPropertyId = _taskPropertyId;
+	public void setKernelId(int _kernelId) {
+		kernelId = _kernelId;
 	}
 
 	public int getMobileDeviceId(){
@@ -83,11 +83,11 @@ public class Kernel extends Cloudlet {
 		return vmIndex;
 	}
 	
-	public int getTaskType(){
+	public int getKernelType(){
 		return type;
 	}
 	
-	public int getTaskPropertyId() {
-		return taskPropertyId;
+	public int getKernelId() {
+		return kernelId;
 	}
 }
