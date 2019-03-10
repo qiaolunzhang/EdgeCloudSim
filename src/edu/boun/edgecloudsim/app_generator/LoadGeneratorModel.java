@@ -11,7 +11,7 @@
  * Copyright (c) 2017, Bogazici University, Istanbul, Turkey
  */
 
-package edu.boun.edgecloudsim.task_generator;
+package edu.boun.edgecloudsim.app_generator;
 
 import java.util.List;
 

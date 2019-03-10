@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <applications>
-	<application name="TASK_BASED_APP">
+	<application name="KERNEL_BASED_APP">
 		<usage_percentage>30</usage_percentage>
 		<prob_cloud_selection>20</prob_cloud_selection>
 		<poisson_interarrival>2</poisson_interarrival>

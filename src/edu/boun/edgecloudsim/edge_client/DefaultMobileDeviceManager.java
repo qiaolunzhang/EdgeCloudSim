@@ -191,59 +191,59 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 
-	public void submitKernel(KernelProperty edgeTask) {
+	public void submitKernel(KernelProperty kernelProperty) {
 		NetworkModel networkModel = SimManager.getInstance().getNetworkModel();
 		
-		//create a task
-		Kernel task = createTask(edgeTask);
+		//create a kernel
+		Kernel kernel = createKernel(kernelProperty);
 		
 		Location currentLocation = SimManager.getInstance().getMobilityModel().
-				getLocation(task.getMobileDeviceId(),CloudSim.clock());
+				getLocation(kernel.getMobileDeviceId(),CloudSim.clock());
 		
-		//set location of the mobile device which generates this task
-		task.setSubmittedLocation(currentLocation);
+		//set location of the mobile device which generates this kernel
+		kernel.setSubmittedLocation(currentLocation);
 
-		//add related task to log list
-		SimLogger.getInstance().addLog(task.getCloudletId(),
-				task.getKernelType(),
-				(int)task.getCloudletLength(),
-				(int)task.getCloudletFileSize(),
-				(int)task.getCloudletOutputSize(),
-				(int)task.getKernelId());
+		//add related kernel to log list
+		SimLogger.getInstance().addLog(kernel.getCloudletId(),
+				kernel.getKernelType(),
+				(int)kernel.getCloudletLength(),
+				(int)kernel.getCloudletFileSize(),
+				(int)kernel.getCloudletOutputSize(),
+				(int)kernel.getKernelId());
 
-		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(task);
+		int nextHopId = SimManager.getInstance().getEdgeOrchestrator().getDeviceToOffload(kernel);
 		
 		if(nextHopId == SimSettings.CLOUD_DATACENTER_ID){
-			double WanDelay = networkModel.getUploadDelay(task.getMobileDeviceId(), nextHopId, task);
+			double WanDelay = networkModel.getUploadDelay(kernel.getMobileDeviceId(), nextHopId, kernel);
 			
 			if(WanDelay>0){
 				networkModel.uploadStarted(currentLocation, nextHopId);
-				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
-				SimLogger.getInstance().setUploadDelay(task.getCloudletId(), WanDelay, NETWORK_DELAY_TYPES.WAN_DELAY);
-				schedule(getId(), WanDelay, REQUEST_RECEIVED_BY_CLOUD, task);
+				SimLogger.getInstance().kernelStarted(kernel.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().setUploadDelay(kernel.getCloudletId(), WanDelay, NETWORK_DELAY_TYPES.WAN_DELAY);
+				schedule(getId(), WanDelay, REQUEST_RECEIVED_BY_CLOUD, kernel);
 			}
 			else
 			{
 				//SimLogger.printLine("Task #" + task.getCloudletId() + " cannot assign to any VM");
 				SimLogger.getInstance().rejectedDueToBandwidth(
-						task.getCloudletId(),
+						kernel.getCloudletId(),
 						CloudSim.clock(),
 						SimSettings.VM_TYPES.CLOUD_VM.ordinal(),
 						NETWORK_DELAY_TYPES.WAN_DELAY);
 			}
 		}
 		else if(nextHopId == SimSettings.GENERIC_EDGE_DEVICE_ID) {
-			double WlanDelay = networkModel.getUploadDelay(task.getMobileDeviceId(), nextHopId, task);
+			double WlanDelay = networkModel.getUploadDelay(kernel.getMobileDeviceId(), nextHopId, kernel);
 			
 			if(WlanDelay > 0){
 				networkModel.uploadStarted(currentLocation, nextHopId);
-				schedule(getId(), WlanDelay, REQUEST_RECIVED_BY_EDGE_DEVICE, task);
-				SimLogger.getInstance().kernelStarted(task.getCloudletId(), CloudSim.clock());
-				SimLogger.getInstance().setUploadDelay(task.getCloudletId(), WlanDelay, NETWORK_DELAY_TYPES.WLAN_DELAY);
+				schedule(getId(), WlanDelay, REQUEST_RECIVED_BY_EDGE_DEVICE, kernel);
+				SimLogger.getInstance().kernelStarted(kernel.getCloudletId(), CloudSim.clock());
+				SimLogger.getInstance().setUploadDelay(kernel.getCloudletId(), WlanDelay, NETWORK_DELAY_TYPES.WLAN_DELAY);
 			}
 			else {
 				SimLogger.getInstance().rejectedDueToBandwidth(
-						task.getCloudletId(),
+						kernel.getCloudletId(),
 						CloudSim.clock(),
 						SimSettings.VM_TYPES.EDGE_VM.ordinal(),
 						NETWORK_DELAY_TYPES.WLAN_DELAY);
@@ -296,24 +296,24 @@ public class DefaultMobileDeviceManager extends MobileDeviceManager {
 		}
 	}
 	
-	private Kernel createTask(KernelProperty edgeTask){
+	private Kernel createKernel(KernelProperty kernelProperty){
 		UtilizationModel utilizationModel = new UtilizationModelFull(); /*UtilizationModelStochastic*/
 		UtilizationModel utilizationModelCPU = getCpuUtilizationModel();
 
-		Kernel task = new Kernel(edgeTask.getMobileDeviceId(), ++taskIdCounter,
-				edgeTask.getLength(), edgeTask.getPesNumber(),
-				edgeTask.getInputFileSize(), edgeTask.getOutputFileSize(),
+		Kernel kernel = new Kernel(kernelProperty.getMobileDeviceId(), ++taskIdCounter,
+				kernelProperty.getLength(), kernelProperty.getPesNumber(),
+				kernelProperty.getInputFileSize(), kernelProperty.getOutputFileSize(),
 				utilizationModelCPU, utilizationModel, utilizationModel);
 		
-		//set the owner of this task
-		task.setUserId(this.getId());
-		task.setKernelType(edgeTask.getApplicationType());
-		task.setKernelId(edgeTask.getKernelId());
+		//set the owner of this kernel
+		kernel.setUserId(this.getId());
+		kernel.setKernelType(kernelProperty.getApplicationType());
+		kernel.setKernelId(kernelProperty.getKernelId());
 		
 		if (utilizationModelCPU instanceof CpuUtilizationModel_Custom) {
-			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(task);
+			((CpuUtilizationModel_Custom)utilizationModelCPU).setTask(kernel);
 		}
 		
-		return task;
+		return kernel;
 	}
 }

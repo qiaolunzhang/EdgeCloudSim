@@ -10,6 +10,8 @@
 
 package edu.boun.edgecloudsim.applications.sample_app3;
 
+import edu.boun.edgecloudsim.app_generator.IdleActiveLoadGenerator;
+import edu.boun.edgecloudsim.app_generator.LoadGeneratorModel;
 import edu.boun.edgecloudsim.cloud_server.CloudServerManager;
 import edu.boun.edgecloudsim.cloud_server.DefaultCloudServerManager;
 import edu.boun.edgecloudsim.core.ScenarioFactory;
@@ -20,8 +22,6 @@ import edu.boun.edgecloudsim.edge_client.MobileDeviceManager;
 import edu.boun.edgecloudsim.edge_client.mobile_processing_unit.MobileServerManager;
 import edu.boun.edgecloudsim.mobility.MobilityModel;
 import edu.boun.edgecloudsim.mobility.NomadicMobility;
-import edu.boun.edgecloudsim.task_generator.IdleActiveLoadGenerator;
-import edu.boun.edgecloudsim.task_generator.LoadGeneratorModel;
 import edu.boun.edgecloudsim.network.NetworkModel;
 
 public class SampleScenarioFactory implements ScenarioFactory {

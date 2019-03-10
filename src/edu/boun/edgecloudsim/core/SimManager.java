@@ -24,17 +24,17 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import edu.boun.edgecloudsim.edge_orchestrator.EdgeOrchestrator;
 import edu.boun.edgecloudsim.edge_server.EdgeServerManager;
 import edu.boun.edgecloudsim.edge_server.EdgeVmAllocationPolicy_Custom;
+import edu.boun.edgecloudsim.app_generator.LoadGeneratorModel;
 import edu.boun.edgecloudsim.cloud_server.CloudServerManager;
 import edu.boun.edgecloudsim.edge_client.MobileDeviceManager;
 import edu.boun.edgecloudsim.edge_client.mobile_processing_unit.MobileServerManager;
 import edu.boun.edgecloudsim.mobility.MobilityModel;
-import edu.boun.edgecloudsim.task_generator.LoadGeneratorModel;
 import edu.boun.edgecloudsim.network.NetworkModel;
 import edu.boun.edgecloudsim.utils.KernelProperty;
 import edu.boun.edgecloudsim.utils.SimLogger;
 
 public class SimManager extends SimEntity {
-	private static final int CREATE_KERNEL_IN_ATOMIC = 0;
+	private static final int CREATE_KERNEL = 0;
 	private static final int CHECK_ALL_VM = 1;
 	private static final int GET_LOAD_LOG = 2;
 	private static final int PRINT_PROGRESS = 3;
@@ -201,18 +201,16 @@ public class SimManager extends SimEntity {
 		
 		//Creation of applications are scheduled here!
 		for(int i=0; i< loadGeneratorModel.getKernelPropertyList().size(); i++) {
-			int taskPropertyId = loadGeneratorModel.getKernelPropertyList().get(i).getKernelId();
-			if (KernelBasedApplicationStatus.getInstance().checkKernelInKBApp(taskPropertyId)) {
-				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(taskPropertyId);
+			int kernelId = loadGeneratorModel.getKernelPropertyList().get(i).getKernelId();
+			if (KernelBasedApplicationStatus.getInstance().checkKernelInKBApp(kernelId)) {
+				boolean ready_to_submit = KernelBasedApplicationStatus.getInstance().checkReadySubmit(kernelId);
 				if (ready_to_submit) {
-					schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL_IN_ATOMIC, loadGeneratorModel.getKernelPropertyList().get(i));
-					//TaskBasedTaskStatus.getInstance().setTaskSubmit(taskPropertyId);
-					// cannot set the sub-task as submitted here, otherwise, all the task will be submitted
-					KernelBasedApplicationStatus.getInstance().setKernelSubmit(taskPropertyId);
+					schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL, loadGeneratorModel.getKernelPropertyList().get(i));
+					KernelBasedApplicationStatus.getInstance().setKernelSubmit(kernelId);
 				}
 			}
 			else {
-				schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL_IN_ATOMIC, loadGeneratorModel.getKernelPropertyList().get(i));
+				schedule(getId(), loadGeneratorModel.getKernelPropertyList().get(i).getStartTime(), CREATE_KERNEL, loadGeneratorModel.getKernelPropertyList().get(i));
 			}
 		}
 		
@@ -229,7 +227,7 @@ public class SimManager extends SimEntity {
 	public void processEvent(SimEvent ev) {
 		synchronized(this){
 			switch (ev.getTag()) {
-			case CREATE_KERNEL_IN_ATOMIC:
+			case CREATE_KERNEL:
 				try {
 					KernelProperty edgeTask = (KernelProperty) ev.getData();
 					mobileDeviceManager.submitKernel(edgeTask);						
