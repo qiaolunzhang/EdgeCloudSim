@@ -1,8 +1,3 @@
 # Kernel-Based Application Implementation for EdgeCloudSim
 
-## Three  main class
-
-Naming refactoring: 
-- TaskBasedApplication -> KernelBasedApplication
-- TaskBasedTaskStatus -> KernelApplicationStatus
-- TaskBasedTask -> Kernel
+The MainApp.java for testing kernel-based application is in module edu.bout.edgecloudsim.applications.sample_app5

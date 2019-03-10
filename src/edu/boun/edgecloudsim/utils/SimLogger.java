@@ -286,22 +286,22 @@ public class SimLogger {
 		}
 
 		KernelBasedApplicationStatus.getInstance().checkAllSubmittedAndSetStatus();
-		System.out.println("Number of kernel-based app is: " + KernelBasedApplicationStatus.getInstance().getNumKernelBasedApplication());
+		//System.out.println("Number of kernel-based app is: " + KernelBasedApplicationStatus.getInstance().getNumKernelBasedApplication());
+		//int totalKernelNum = 0;
 
 		// extract the result of each task and write it to the file if required
 		for (Map.Entry<Integer, LogItem> entry : kernelMap.entrySet()) {
 			Integer key = entry.getKey();
 			LogItem value = entry.getValue();
-			//boolean isKernelBasedApplication = false;
+			//totalKernelNum++;
 			
 			if (value.isInWarmUpPeriod())
 				continue;
 
 			int kernelId = value.getKernelId();
 
+			// is kernel in kernel-based application with multiple kernels
 			if (KernelBasedApplicationStatus.getInstance().checkKernelInKBApp(kernelId)) {
-				//System.out.println("It's a sub-task");
-				//isKernelBasedApplication = true;
 				int status = KernelBasedApplicationStatus.getInstance().getKernelBasedAppFinalStatus(kernelId);
 				if (status == 2) {
 					continue;
@@ -425,6 +425,8 @@ public class SimLogger {
 			}
 		}
 		
+		//System.out.println("Total number of kernel logged is " + totalKernelNum);
+		
 
 		
 		for (Map.Entry<Integer, LogItem> entry : kernelMap.entrySet()) {
@@ -449,7 +451,7 @@ public class SimLogger {
 					else if (status == 1) {
 						uncompletedApplication[value.getKernelType()]++;
 						KernelBasedApplicationStatus.getInstance().setFinalStatusLogged(kernelId);
-					} else if (status == 2) {
+					} else {
 						failedApplication[value.getKernelType()]++;
 						KernelBasedApplicationStatus.getInstance().setFinalStatusLogged(kernelId);
 					}
@@ -615,6 +617,13 @@ public class SimLogger {
 		failedAppDueToVmCapacityOnEdge[numOfAppTypes] = IntStream.of(failedAppDueToVmCapacityOnEdge).sum();
 		failedAppDueToVmCapacityOnMobile[numOfAppTypes] = IntStream.of(failedAppDueToVmCapacityOnMobile).sum();
 		
+		
+		failedKernelInKBAppDueToVmCapacity[numOfAppTypes] = IntStream.of(failedKernelInKBAppDueToVmCapacity).sum();
+		failedKernelInKBAppDueToVmCapacityOnCloud[numOfAppTypes] = IntStream.of(failedKernelInKBAppDueToVmCapacityOnCloud).sum();
+		failedKernelInKBAppDueToVmCapacityOnEdge[numOfAppTypes] = IntStream.of(failedKernelInKBAppDueToVmCapacityOnEdge).sum();
+		failedKernelInKBAppDueToVmCapacityOnMobile[numOfAppTypes] = IntStream.of(failedKernelInKBAppDueToVmCapacityOnMobile).sum();
+		
+	
 		cost[numOfAppTypes] = DoubleStream.of(cost).sum();
 		failedAppDuetoBw[numOfAppTypes] = IntStream.of(failedAppDuetoBw).sum();
 		failedAppDuetoWanBw[numOfAppTypes] = IntStream.of(failedAppDuetoWanBw).sum();
@@ -622,6 +631,14 @@ public class SimLogger {
 		failedAppDuetoLanBw[numOfAppTypes] = IntStream.of(failedAppDuetoLanBw).sum();
 		failedAppDuetoMobility[numOfAppTypes] = IntStream.of(failedAppDuetoMobility).sum();
 
+		failedKernelInKBAppDuetoBw[numOfAppTypes] = IntStream.of(failedKernelInKBAppDuetoBw).sum();
+		failedKernelInKBAppDuetoWanBw[numOfAppTypes] = IntStream.of(failedKernelInKBAppDuetoWanBw).sum();
+		failedKernelInKBAppDuetoManBw[numOfAppTypes] = IntStream.of(failedKernelInKBAppDuetoManBw).sum();
+		failedKernelInKBAppDuetoLanBw[numOfAppTypes] = IntStream.of(failedKernelInKBAppDuetoLanBw).sum();
+		failedKernelInKBAppDuetoMobility[numOfAppTypes] = IntStream.of(failedKernelInKBAppDuetoMobility).sum();
+
+
+		
 		// calculate server load
 		double totalVmLoadOnEdge = 0;
 		double totalVmLoadOnCloud = 0;
@@ -776,73 +793,79 @@ public class SimLogger {
 		}
 
 		// printout important results
-		printLine("Total Task amount: " 
+		printLine("Total application amount: " 
 				+ (failedApplication[numOfAppTypes] + completedApplication[numOfAppTypes] + uncompletedApplication[numOfAppTypes])
 				);
-		printLine("Task-Based Task amount: " + numKernelBasedApplication);
-		printLine("# of atomic tasks (Edge/Cloud/Mobile): "
-				//+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes]) + "("
+		printLine("Kernel-Based Application amount: " + numKernelBasedApplication);
+		printLine("# of Application with only one kernel(Edge/Cloud/Mobile): "
 				+ (failedAppOnEdge[numOfAppTypes] + completedAppOnEdge[numOfAppTypes]) + "/" 
 				+ (failedAppOnCloud[numOfAppTypes]+ completedAppOnCloud[numOfAppTypes]) + "/" 
-				+ (failedAppOnMobile[numOfAppTypes]+ completedAppOnMobile[numOfAppTypes]) + ")");
-		printLine("# of Task-Based sub-tasks (Edge/Cloud/Mobile): "
-				//+ (failedTask[numOfAppTypes] + completedTask[numOfAppTypes]) + "("
+				+ (failedAppOnMobile[numOfAppTypes]+ completedAppOnMobile[numOfAppTypes]));
+		printLine("* of kernels in Kernel-Based Application(Edge/Cloud/Mobile): "
 				+ (failedKernelInKBAppOnEdge[numOfAppTypes] + completedKernelInKBAppOnEdge[numOfAppTypes]) + "/" 
 				+ (failedKernelInKBAppOnCloud[numOfAppTypes]+ completedKernelInKBAppOnCloud[numOfAppTypes]) + "/" 
-				+ (failedKernelInKBAppOnMobile[numOfAppTypes]+ completedKernelInKBAppOnMobile[numOfAppTypes]) + ")");
+				+ (failedKernelInKBAppOnMobile[numOfAppTypes]+ completedKernelInKBAppOnMobile[numOfAppTypes]));
 		
-		printLine("# of failed tasks (Edge/Cloud/Mobile): ("
-				//+ failedTask[numOfAppTypes] + "("
+		printLine("# of failed Applications with only one kernel (Edge/Cloud/Mobile): "
 				+ failedAppOnEdge[numOfAppTypes] + "/"
 				+ failedAppOnCloud[numOfAppTypes] + "/"
-				+ failedAppOnMobile[numOfAppTypes] + ")");
+				+ failedAppOnMobile[numOfAppTypes]);
 
-		printLine("# of failed TaskBased sub-tasks (Edge/Cloud/Mobile): ("
-				//+ failedTask[numOfAppTypes] + "("
+		printLine("* of failed kernels in Kernel-Based Application(Edge/Cloud/Mobile): "
 				+ failedKernelInKBAppOnEdge[numOfAppTypes] + "/"
 				+ failedKernelInKBAppOnCloud[numOfAppTypes] + "/"
-				+ failedKernelInKBAppOnMobile[numOfAppTypes] + ")");
+				+ failedKernelInKBAppOnMobile[numOfAppTypes]);
 	
 		
-		printLine("# of completed tasks (Edge/Cloud/Mobile): ("
-				//+ completedTask[numOfAppTypes] + "("
+		printLine("# of completed Applications with only one kernel(Edge/Cloud/Mobile): "
 				+ completedAppOnEdge[numOfAppTypes] + "/"
 				+ completedAppOnCloud[numOfAppTypes] + "/"
-				+ completedAppOnMobile[numOfAppTypes] + ")");
+				+ completedAppOnMobile[numOfAppTypes]);
 
-		printLine("# of completed Task-Based sub-tasks (Edge/Cloud/Mobile): ("
-				//+ completedTask[numOfAppTypes] + "("
+		printLine("* of completed kernels in Kernel-Based Application(Edge/Cloud/Mobile): "
 				+ completedKernelInKBAppOnEdge[numOfAppTypes] + "/"
 				+ completedKernelInKBAppOnCloud[numOfAppTypes] + "/"
-				+ completedKernelInKBAppOnMobile[numOfAppTypes] + ")");
+				+ completedKernelInKBAppOnMobile[numOfAppTypes]);
 		
-		printLine("# of uncompleted tasks (Edge/Cloud/Mobile): ("
-				//+ uncompletedTask[numOfAppTypes] + "("
+		printLine("# of uncompleted Applications with only one kernel (Edge/Cloud/Mobile): "
 				+ uncompletedApplicationOnEdge[numOfAppTypes] + "/"
 				+ uncompletedApplicationOnCloud[numOfAppTypes] + "/"
-				+ uncompletedapplicationOnMobile[numOfAppTypes] + ")");
+				+ uncompletedapplicationOnMobile[numOfAppTypes]);
 
-		printLine("# of uncompleted Task-Based tasks (Edge/Cloud/Mobile): ("
-				//+ uncompletedTask[numOfAppTypes] + "("
+		printLine("* of uncompleted kernels in Kernel-Based Applications(Edge/Cloud/Mobile): "
 				+ uncompletedKernelInKBAppOnEdge[numOfAppTypes] + "/"
 				+ uncompletedKernelInKBAppOnCloud[numOfAppTypes] + "/"
-				+ uncompletedKernelInKBAppOnMobile[numOfAppTypes] + ")");
+				+ uncompletedKernelInKBAppOnMobile[numOfAppTypes]);
 
 
-		printLine("# of failed tasks due to vm capacity (Edge/Cloud/Mobile): "
+		printLine("# of failed application with only one kernel due to vm capacity (Edge/Cloud/Mobile): "
 				+ failedAppDueToVmCapacity[numOfAppTypes] + "("
 				+ failedAppDueToVmCapacityOnEdge[numOfAppTypes] + "/"
 				+ failedAppDueToVmCapacityOnCloud[numOfAppTypes] + "/"
 				+ failedAppDueToVmCapacityOnMobile[numOfAppTypes] + ")");
 		
-		printLine("# of failed tasks due to Mobility/Network(WLAN/MAN/WAN): "
+		printLine("* of failed kernel in Kernel-Based Application due to vm capacity (Edge/Cloud/Mobile): "
+				+ failedKernelInKBAppDueToVmCapacity[numOfAppTypes] + "("
+				+ failedKernelInKBAppDueToVmCapacityOnEdge[numOfAppTypes] + "/"
+				+ failedKernelInKBAppDueToVmCapacityOnCloud[numOfAppTypes] + "/"
+				+ failedKernelInKBAppDueToVmCapacityOnMobile[numOfAppTypes] + ")");
+	
+		printLine("# of failed application with only one kernel due to Mobility/Network(WLAN/MAN/WAN): "
 				+ failedAppDuetoMobility[numOfAppTypes]
 				+ "/" + failedAppDuetoBw[numOfAppTypes] 
 				+ "(" + failedAppDuetoLanBw[numOfAppTypes] 
 				+ "/" + failedAppDuetoManBw[numOfAppTypes] 
 				+ "/" + failedAppDuetoWanBw[numOfAppTypes] + ")");
 		
-		printLine("percentage of failed tasks: "
+		printLine("* of failed kernel in Kernel-Based Application to Mobility/Network(WLAN/MAN/WAN): "
+				+ failedKernelInKBAppDuetoMobility[numOfAppTypes]
+				+ "/" + failedKernelInKBAppDuetoBw[numOfAppTypes] 
+				+ "(" + failedKernelInKBAppDuetoLanBw[numOfAppTypes] 
+				+ "/" + failedKernelInKBAppDuetoManBw[numOfAppTypes] 
+				+ "/" + failedKernelInKBAppDuetoWanBw[numOfAppTypes] + ")");
+		
+		
+		printLine("percentage of failed Applications: "
 				+ String.format("%.6f", ((double) failedApplication[numOfAppTypes] * (double) 100)
 						/ (double) (completedApplication[numOfAppTypes] + failedApplication[numOfAppTypes]))
 				+ "%");

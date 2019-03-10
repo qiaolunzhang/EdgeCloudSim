@@ -37,8 +37,6 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 		kernelPropertyInKernelBasedAppList = new ArrayList<KernelProperty>();
 		kernelBasedApplicationList = new ArrayList<KernelBasedApplication>();
 		kernelId2KernelPropertyListIndex = new HashMap<Integer, Integer>();
-		int atomicAppNum = 0;
-		int kbAppNum = 0;
 		
 		//exponential number generator for file input size, file output size and kernel length
 		ExponentialDistribution[][] expRngList = new ExponentialDistribution[SimSettings.getInstance().getApplicationLookUpTable().length][3];
@@ -112,7 +110,6 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 				}
 				
 				if (SimSettings.getInstance().isKernelBasedApplication(randomApplicationType)) {
-					kbAppNum++;
 					// create an object of TaskBasedTask
 					// kernelNum is the number of kernels in the kernel-based application
 					int kernelNum = SimSettings.getInstance().getKernelNum(randomApplicationType);
@@ -149,15 +146,11 @@ public class IdleActiveLoadGenerator extends LoadGeneratorModel{
 					
 				}
 				else {
-					atomicAppNum++;
 					kernelPropertyList.add(new KernelProperty(i,randomApplicationType, virtualTime, expRngList, kernelId));
 					kernelId++;
 				}
 			}
 		}
-		System.out.println("");
-		System.out.println("Load Generator: atomic application numeber is " + atomicAppNum);
-		System.out.println("Load Generator: kernel-based application numeber is " + kbAppNum);
 	}
 
 	@Override
